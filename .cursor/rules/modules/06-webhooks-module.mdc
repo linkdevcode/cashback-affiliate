@@ -1,0 +1,822 @@
+---
+
+description: Webhooks Module Rules
+globs:
+- backend/**/*.cs
+alwaysApply: true
+
+---
+
+# Webhooks Module Rules
+
+References:
+
+- docs/product-requirements.md
+- docs/database-design.md
+- docs/enums.md
+- docs/user-flows.md
+- docs/api-specification.md
+- docs/tech-architecture.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+- Receive Provider Events
+- Process Postbacks
+- Process Webhooks
+- Synchronize Order Data
+- Trigger Commission Updates
+- Ensure Idempotency
+
+Webhooks are the primary integration point between Affiliate Providers and the platform.
+
+---
+
+# MVP Provider
+
+Supported:
+
+✓ Accesstrade
+
+Future:
+
+- Ecomobi
+- MasOffer
+- Other Providers
+
+MVP must only implement Accesstrade.
+
+Do not introduce multi-provider complexity.
+
+---
+
+# Core Flow
+
+User
+
+↓
+
+Generate Affiliate Link
+
+↓
+
+Purchase Product
+
+↓
+
+Accesstrade Receives Conversion
+
+↓
+
+Accesstrade Sends Webhook
+
+↓
+
+Webhook Module
+
+↓
+
+Orders Module
+
+↓
+
+Cashback Processing
+
+↓
+
+User Balance Updated
+
+---
+
+# Architecture Rules
+
+Webhook Module does NOT contain business logic.
+
+Responsibilities:
+
+✓ Validate Request
+
+✓ Verify Signature
+
+✓ Parse Payload
+
+✓ Prevent Duplicates
+
+✓ Dispatch Command
+
+---
+
+Business Logic belongs to:
+
+Orders Module
+
+Withdrawals Module
+
+Application Layer
+
+---
+
+Bad
+
+Webhook Controller
+
+↓
+
+Create Order
+
+↓
+
+Calculate Cashback
+
+↓
+
+Update Balance
+
+---
+
+Good
+
+Webhook Controller
+
+↓
+
+Validate
+
+↓
+
+Dispatch Command
+
+↓
+
+Order Handler
+
+↓
+
+Business Logic
+
+---
+
+# Webhook Endpoint
+
+Required Endpoint
+
+POST
+
+/api/v1/webhooks/accesstrade
+
+Purpose:
+
+Receive Accesstrade conversions.
+
+---
+
+No authentication required.
+
+Must validate provider authenticity.
+
+---
+
+# Controller Rules
+
+Webhook controller must remain thin.
+
+Allowed:
+
+- Validation
+- Signature Verification
+- Mapping DTO
+
+Forbidden:
+
+- Cashback Calculation
+- Balance Updates
+- Financial Logic
+
+---
+
+# Payload Rules
+
+Create provider-specific DTO.
+
+Example:
+
+AccesstradeWebhookRequest
+
+Never use dynamic objects.
+
+Never use Dictionary<string, object>.
+
+Payloads must be strongly typed.
+
+---
+
+# Signature Validation Rules
+
+Critical Requirement
+
+Every webhook must verify source authenticity.
+
+---
+
+Validation Methods
+
+Preferred:
+
+Provider Signature
+
+Provider Secret
+
+Provider Token
+
+---
+
+If signature invalid:
+
+Return
+
+```http
+401 Unauthorized
+```
+
+---
+
+Never process invalid payloads.
+
+---
+
+# Idempotency Rules
+
+Most Important Rule
+
+Webhook processing must be idempotent.
+
+---
+
+Example
+
+Provider sends:
+
+Order A
+
+↓
+
+Network Retry
+
+↓
+
+Order A Again
+
+↓
+
+No Duplicate Processing
+
+---
+
+Duplicate cashback is forbidden.
+
+---
+
+# Duplicate Detection Rules
+
+Primary Key
+
+ProviderOrderId
+
+---
+
+Optional
+
+ProviderEventId
+
+---
+
+Store processed webhook events.
+
+Suggested Entity:
+
+WebhookEvent
+
+Fields:
+
+- Id
+- Provider
+- EventId
+- ProviderOrderId
+- Status
+- Payload
+- ReceivedAt
+- ProcessedAt
+
+---
+
+Purpose:
+
+Duplicate detection
+
+Auditing
+
+Troubleshooting
+
+---
+
+# Event Storage Rules
+
+Every webhook event must be stored.
+
+Even if processing fails.
+
+Purpose:
+
+Replay
+
+Debugging
+
+Auditing
+
+---
+
+Never discard incoming events.
+
+---
+
+# Processing Rules
+
+Recommended Flow
+
+Receive Event
+
+↓
+
+Validate Signature
+
+↓
+
+Store Event
+
+↓
+
+Check Duplicate
+
+↓
+
+Dispatch Command
+
+↓
+
+Update Event Status
+
+---
+
+# Event Status Rules
+
+Use enum.
+
+Examples:
+
+Received
+
+Processing
+
+Processed
+
+Failed
+
+Ignored
+
+---
+
+Never delete webhook events.
+
+---
+
+# Failure Handling Rules
+
+Failures must be recoverable.
+
+Example
+
+Webhook Received
+
+↓
+
+Database Failure
+
+↓
+
+Mark Failed
+
+↓
+
+Retry Later
+
+---
+
+Do not lose events.
+
+---
+
+# Retry Rules
+
+Webhook processing must support retries.
+
+---
+
+Example
+
+Failed
+
+↓
+
+Retry Job
+
+↓
+
+Success
+
+↓
+
+Processed
+
+---
+
+Retries must remain idempotent.
+
+---
+
+# Order Synchronization Rules
+
+Webhook may:
+
+Create Order
+
+Update Order Status
+
+Update Commission
+
+---
+
+Webhook must not:
+
+Delete Orders
+
+Delete Transactions
+
+Delete Users
+
+---
+
+# Status Update Rules
+
+Allowed
+
+Pending
+
+↓
+
+Approved
+
+---
+
+Pending
+
+↓
+
+Rejected
+
+---
+
+Pending
+
+↓
+
+Cancelled
+
+---
+
+Approved
+
+↓
+
+Cancelled
+
+(with reversal)
+
+---
+
+Approved
+
+↓
+
+Rejected
+
+(with reversal)
+
+---
+
+All transitions must follow Orders Module rules.
+
+---
+
+# Financial Safety Rules
+
+Balance changes only occur through Orders Module.
+
+Webhook module must never:
+
+- Update User Balance
+- Create Withdrawal
+- Modify Financial Transactions directly
+
+---
+
+Financial logic belongs elsewhere.
+
+---
+
+# Logging Rules
+
+Log:
+
+✓ Webhook Received
+
+✓ Signature Validation Failure
+
+✓ Duplicate Event
+
+✓ Processing Success
+
+✓ Processing Failure
+
+---
+
+Never log:
+
+✗ Secrets
+
+✗ Tokens
+
+✗ Authorization Headers
+
+---
+
+Large payloads should be truncated.
+
+---
+
+# Security Rules
+
+Whitelist provider IPs if supported.
+
+Additional protection:
+
+- Signature Validation
+- Shared Secret
+- Rate Limiting
+
+---
+
+Never trust:
+
+- Request Body
+- Query Parameters
+- User-provided data
+
+---
+
+# Queue Processing Rules
+
+Recommended Architecture
+
+Webhook
+
+↓
+
+Queue
+
+↓
+
+Background Worker
+
+↓
+
+Process Command
+
+---
+
+Benefits
+
+- Fast Response
+- Retry Support
+- Better Reliability
+
+---
+
+MVP Option
+
+Direct Processing Allowed
+
+Only if:
+
+- Processing remains lightweight
+
+---
+
+Future Production
+
+Queue is recommended.
+
+---
+
+# Monitoring Rules
+
+Track:
+
+- Webhooks Received
+- Failed Events
+- Duplicate Events
+- Processing Time
+
+---
+
+Admin Dashboard should expose:
+
+Webhook Health Metrics
+
+---
+
+# Required Commands
+
+ProcessAccesstradeWebhookCommand
+
+RetryWebhookCommand
+
+---
+
+# Required Queries
+
+GetWebhookEventsQuery
+
+GetWebhookEventDetailQuery
+
+---
+
+# Admin Endpoints
+
+GET
+
+/api/v1/admin/webhooks
+
+---
+
+GET
+
+/api/v1/admin/webhooks/{id}
+
+---
+
+POST
+
+/api/v1/admin/webhooks/{id}/retry
+
+---
+
+Purpose:
+
+Monitoring
+
+Troubleshooting
+
+Manual Recovery
+
+---
+
+# Database Rules
+
+Suggested Table
+
+WebhookEvents
+
+Fields
+
+- Id
+- Provider
+- EventId
+- ProviderOrderId
+- Payload
+- Status
+- ErrorMessage
+- ReceivedAt
+- ProcessedAt
+
+---
+
+Indexes
+
+- ProviderOrderId
+- EventId
+- Status
+- ReceivedAt
+
+---
+
+# Testing Requirements
+
+Signature Validation
+
+✓ Valid Signature
+
+✓ Invalid Signature
+
+---
+
+Processing
+
+✓ New Event
+
+✓ Existing Event
+
+---
+
+Idempotency
+
+✓ Duplicate Event Ignored
+
+✓ Duplicate Cashback Prevented
+
+---
+
+Failures
+
+✓ Database Failure
+
+✓ Retry Success
+
+✓ Retry Failure
+
+---
+
+Status Updates
+
+✓ Pending → Approved
+
+✓ Pending → Rejected
+
+✓ Pending → Cancelled
+
+---
+
+Security
+
+✓ Unauthorized Payload Blocked
+
+✓ Invalid Signature Blocked
+
+---
+
+Auditability
+
+✓ Event Stored
+
+✓ Event Status Updated
+
+---
+
+# Documentation Rules
+
+If webhook contract changes:
+
+Update:
+
+- api-specification.md
+- database-design.md
+- user-flows.md
+- product-requirements.md
+
+---
+
+# Code Generation Checklist
+
+✓ Signature validation implemented
+
+✓ Provider-specific DTO used
+
+✓ Event stored before processing
+
+✓ Idempotent processing
+
+✓ Duplicate protection enabled
+
+✓ Failed events recoverable
+
+✓ Audit trail maintained
+
+✓ Business logic separated
+
+✓ Financial updates delegated
+
+✓ Monitoring supported
+
+Webhook reliability is more important than throughput.

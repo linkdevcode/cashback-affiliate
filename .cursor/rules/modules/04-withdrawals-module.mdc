@@ -1,0 +1,789 @@
+---
+
+description: Withdrawals Module Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Withdrawals Module Rules
+
+References:
+
+- docs/product-requirements.md
+- docs/database-design.md
+- docs/enums.md
+- docs/user-flows.md
+- docs/api-specification.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+- Withdrawal Requests
+- Withdrawal Validation
+- Balance Reservation
+- Withdrawal Approval
+- Withdrawal Rejection
+- Withdrawal History
+- Financial Audit Trail
+
+This module handles real money leaving the platform.
+
+---
+
+# Core Flow
+
+User
+
+↓
+
+Available Balance
+
+↓
+
+Create Withdrawal Request
+
+↓
+
+Pending
+
+↓
+
+Admin Review
+
+↓
+
+Approved
+
+OR
+
+Rejected
+
+↓
+
+Bank Transfer
+
+↓
+
+Completed
+
+---
+
+# Source Of Truth
+
+WithdrawRequest table is the source of truth.
+
+Do not calculate withdrawal history from transactions.
+
+Persist every withdrawal request.
+
+Never delete withdrawal records.
+
+---
+
+# WithdrawRequest Entity
+
+Suggested fields:
+
+- Id
+- UserId
+- Amount
+- BankName
+- BankAccountNumber
+- BankAccountHolder
+- Status
+- RequestedAt
+- ApprovedAt
+- RejectedAt
+- CompletedAt
+- RejectionReason
+- CreatedAt
+- UpdatedAt
+
+---
+
+# Withdrawal Status Rules
+
+Use enums from:
+
+docs/enums.md
+
+Allowed:
+
+Pending
+
+Approved
+
+Rejected
+
+Completed
+
+---
+
+Lifecycle
+
+Pending
+
+↓
+
+Approved
+
+↓
+
+Completed
+
+---
+
+Pending
+
+↓
+
+Rejected
+
+---
+
+Forbidden
+
+Completed
+
+↓
+
+Pending
+
+---
+
+Rejected
+
+↓
+
+Approved
+
+---
+
+Completed
+
+↓
+
+Rejected
+
+---
+
+Status transitions must be explicit.
+
+---
+
+# Balance Validation Rules
+
+Before creating withdrawal:
+
+Validate:
+
+AvailableBalance >= Amount
+
+---
+
+Reject:
+
+Amount > Balance
+
+Amount <= 0
+
+---
+
+Example
+
+Balance
+
+100,000
+
+Withdrawal
+
+120,000
+
+↓
+
+Fail
+
+---
+
+# Minimum Withdrawal Rules
+
+Configurable.
+
+Example:
+
+```text
+50,000 VND
+```
+
+Must come from configuration.
+
+Never hardcode.
+
+---
+
+# Maximum Withdrawal Rules
+
+Configurable.
+
+Example:
+
+```text
+5,000,000 VND
+```
+
+Must come from configuration.
+
+---
+
+# Available Balance Rules
+
+Withdrawal uses:
+
+AvailableBalance
+
+Never use:
+
+PendingBalance
+
+EstimatedBalance
+
+Pending commissions cannot be withdrawn.
+
+---
+
+# Balance Reservation Rules
+
+Recommended MVP Strategy
+
+Immediately deduct balance when request created.
+
+Example
+
+Balance
+
+100,000
+
+↓
+
+Withdrawal
+
+80,000
+
+↓
+
+Available Balance
+
+20,000
+
+---
+
+Purpose:
+
+Prevent double spending.
+
+---
+
+# Rejection Rules
+
+If withdrawal rejected:
+
+Restore balance.
+
+Example
+
+Available Balance
+
+20,000
+
+↓
+
+Rejected
+
+↓
+
+Available Balance
+
+100,000
+
+---
+
+Must create audit transaction.
+
+---
+
+# Completion Rules
+
+Completed means:
+
+Money has been transferred.
+
+Only Admin may mark as Completed.
+
+---
+
+# Financial Transaction Rules
+
+Every withdrawal action must create transaction records.
+
+Suggested transaction types:
+
+WithdrawalRequested
+
+WithdrawalRejected
+
+WithdrawalCompleted
+
+BalanceAdjustment
+
+---
+
+Purpose:
+
+Audit
+
+Dispute resolution
+
+Financial history
+
+---
+
+# Bank Information Rules
+
+Required:
+
+BankName
+
+BankAccountNumber
+
+BankAccountHolder
+
+---
+
+Validation:
+
+Non-empty
+
+Length limits
+
+Basic format validation
+
+---
+
+Do not validate against bank APIs in MVP.
+
+---
+
+# Withdrawal Ownership Rules
+
+Withdrawal belongs to:
+
+Authenticated User
+
+---
+
+User may:
+
+Create withdrawal
+
+View own withdrawals
+
+---
+
+User may NOT:
+
+Approve withdrawal
+
+Reject withdrawal
+
+Complete withdrawal
+
+---
+
+# Admin Rules
+
+Admin may:
+
+View all withdrawals
+
+Approve withdrawal
+
+Reject withdrawal
+
+Complete withdrawal
+
+---
+
+Admin actions must be logged.
+
+---
+
+# Duplicate Withdrawal Rules
+
+Multiple withdrawals allowed.
+
+Provided:
+
+Sufficient balance exists.
+
+---
+
+Do not block users from creating multiple requests.
+
+Balance validation handles risk.
+
+---
+
+# Idempotency Rules
+
+Critical Requirement
+
+Approval processing must be idempotent.
+
+---
+
+Example
+
+Approve Request
+
+↓
+
+Network Retry
+
+↓
+
+No duplicate processing
+
+---
+
+Balance must never be deducted twice.
+
+---
+
+# Audit Trail Rules
+
+Store:
+
+CreatedBy
+
+ApprovedBy
+
+RejectedBy
+
+CompletedBy
+
+where applicable.
+
+---
+
+Every status change must be traceable.
+
+---
+
+# Security Rules
+
+Never trust:
+
+UserId from frontend
+
+Role from frontend
+
+Balance from frontend
+
+---
+
+Always load:
+
+Current User
+
+Current Balance
+
+from database.
+
+---
+
+# Notification Rules
+
+Future Feature
+
+Examples:
+
+Withdrawal Created
+
+Withdrawal Approved
+
+Withdrawal Rejected
+
+Withdrawal Completed
+
+---
+
+MVP:
+
+Optional
+
+---
+
+# Dashboard Integration
+
+Withdrawals Module provides:
+
+- Total Withdrawn
+- Pending Withdrawals
+- Withdrawal History
+
+---
+
+Dashboard values must come from database.
+
+---
+
+# Required Endpoints
+
+POST
+
+/api/v1/withdrawals
+
+Purpose:
+
+Create withdrawal request.
+
+---
+
+GET
+
+/api/v1/withdrawals
+
+Purpose:
+
+User withdrawal history.
+
+---
+
+GET
+
+/api/v1/withdrawals/{id}
+
+Purpose:
+
+Withdrawal details.
+
+---
+
+# Admin Endpoints
+
+GET
+
+/api/v1/admin/withdrawals
+
+---
+
+POST
+
+/api/v1/admin/withdrawals/{id}/approve
+
+---
+
+POST
+
+/api/v1/admin/withdrawals/{id}/reject
+
+---
+
+POST
+
+/api/v1/admin/withdrawals/{id}/complete
+
+---
+
+# Required Commands
+
+CreateWithdrawalCommand
+
+ApproveWithdrawalCommand
+
+RejectWithdrawalCommand
+
+CompleteWithdrawalCommand
+
+---
+
+# Required Queries
+
+GetWithdrawalsQuery
+
+GetWithdrawalDetailQuery
+
+AdminGetWithdrawalsQuery
+
+---
+
+# Logging Rules
+
+Log:
+
+✓ Withdrawal Created
+
+✓ Withdrawal Approved
+
+✓ Withdrawal Rejected
+
+✓ Withdrawal Completed
+
+✓ Validation Failures
+
+---
+
+Never log:
+
+✗ Bank Account Number (full)
+
+✗ Tokens
+
+✗ Secrets
+
+✗ Sensitive personal data
+
+---
+
+# Privacy Rules
+
+Mask bank account numbers in logs.
+
+Example
+
+```text
+123456789
+```
+
+↓
+
+```text
+*****6789
+```
+
+---
+
+# Performance Rules
+
+Create indexes:
+
+- user_id
+- status
+- created_at
+
+---
+
+Always paginate withdrawal history.
+
+---
+
+# Testing Requirements
+
+Must Test
+
+Creation
+
+✓ Valid Withdrawal
+
+✓ Insufficient Balance
+
+✓ Zero Amount
+
+✓ Negative Amount
+
+---
+
+Validation
+
+✓ Minimum Amount
+
+✓ Maximum Amount
+
+---
+
+Approval
+
+✓ Success
+
+✓ Duplicate Approval
+
+---
+
+Rejection
+
+✓ Balance Restored
+
+✓ Audit Transaction Created
+
+---
+
+Completion
+
+✓ Admin Only
+
+✓ Correct Status Transition
+
+---
+
+Security
+
+✓ User Cannot View Other Withdrawals
+
+✓ User Cannot Approve Withdrawal
+
+✓ Admin Can Manage All
+
+---
+
+Idempotency
+
+✓ Duplicate Processing Ignored
+
+✓ No Double Deduction
+
+---
+
+# Documentation Rules
+
+If withdrawal process changes:
+
+Update:
+
+- product-requirements.md
+- api-specification.md
+- database-design.md
+- user-flows.md
+- enums.md
+
+---
+
+# Code Generation Checklist
+
+✓ Balance validated
+
+✓ Minimum withdrawal configurable
+
+✓ Maximum withdrawal configurable
+
+✓ Balance reserved immediately
+
+✓ Rejection restores balance
+
+✓ Status transitions enforced
+
+✓ Financial transactions created
+
+✓ Admin approval required
+
+✓ Audit trail maintained
+
+✓ Idempotent processing
+
+Money safety is more important than convenience.

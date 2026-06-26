@@ -1,0 +1,376 @@
+---
+
+description: Notification Module Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Notification Module Rules
+
+References:
+
+- docs/product-requirements.md
+- docs/user-flows.md
+- docs/api-specification.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+- User Notifications
+- System Notifications
+- Notification History
+- Notification Delivery
+- Notification Preferences
+
+Notifications improve user engagement but must never affect core business logic.
+
+---
+
+# Core Principle
+
+Notifications are informational.
+
+Business processes must not depend on notifications.
+
+---
+
+Bad
+
+Order Approved
+
+↓
+
+Send Notification
+
+↓
+
+Update Balance
+
+---
+
+Good
+
+Order Approved
+
+↓
+
+Update Balance
+
+↓
+
+Create Notification
+
+---
+
+# Notification Types
+
+Use enums.
+
+Examples:
+
+OrderApproved
+
+OrderRejected
+
+WithdrawalCreated
+
+WithdrawalApproved
+
+WithdrawalRejected
+
+WithdrawalCompleted
+
+SystemAnnouncement
+
+---
+
+Never hardcode strings.
+
+---
+
+# Notification Entity
+
+Suggested Fields
+
+- Id
+- UserId
+- Type
+- Title
+- Message
+- IsRead
+- CreatedAt
+- ReadAt
+
+---
+
+# Source Of Truth
+
+Notifications table is the source of truth.
+
+Do not generate notifications dynamically.
+
+Persist all notifications.
+
+---
+
+# Delivery Channels
+
+MVP
+
+✓ In-App Notifications
+
+Future
+
+- Email
+- SMS
+- Push Notification
+- Telegram
+- Zalo
+
+---
+
+# Notification Creation Rules
+
+Notifications should be created after:
+
+Order Approved
+
+Order Rejected
+
+Withdrawal Created
+
+Withdrawal Approved
+
+Withdrawal Rejected
+
+Withdrawal Completed
+
+---
+
+Notifications should not be created for every minor event.
+
+---
+
+# Read Status Rules
+
+Default
+
+```text id="j8q2mc"
+IsRead = false
+```
+
+---
+
+User may:
+
+Mark as Read
+
+Mark All as Read
+
+---
+
+Never delete notifications automatically.
+
+---
+
+# Notification Ownership
+
+Notification belongs to:
+
+One User
+
+---
+
+Users can only access:
+
+Their own notifications.
+
+---
+
+# Security Rules
+
+User must never access:
+
+Other users' notifications.
+
+---
+
+Admin announcements may be broadcast.
+
+---
+
+# System Announcements
+
+Future Feature
+
+Suggested Fields
+
+- Title
+- Message
+- ActiveFrom
+- ActiveTo
+
+---
+
+Visible to all users.
+
+---
+
+# Frontend Rules
+
+Notification Bell
+
+Display:
+
+Unread Count
+
+Recent Notifications
+
+---
+
+Notifications Page
+
+Features:
+
+- List Notifications
+- Mark Read
+- Mark All Read
+
+---
+
+Frontend must not:
+
+Generate notifications
+
+Calculate unread counts
+
+---
+
+# Required Endpoints
+
+GET
+
+/api/v1/notifications
+
+---
+
+GET
+
+/api/v1/notifications/unread-count
+
+---
+
+POST
+
+/api/v1/notifications/{id}/read
+
+---
+
+POST
+
+/api/v1/notifications/read-all
+
+---
+
+# Required Commands
+
+MarkNotificationReadCommand
+
+MarkAllNotificationsReadCommand
+
+CreateNotificationCommand
+
+---
+
+# Required Queries
+
+GetNotificationsQuery
+
+GetUnreadNotificationCountQuery
+
+---
+
+# Logging Rules
+
+Log:
+
+✓ Notification Created
+
+✓ Notification Read
+
+✓ Notification Delivery Failure
+
+---
+
+Never log:
+
+✗ Personal content unnecessarily
+
+✗ Sensitive user information
+
+---
+
+# Performance Rules
+
+Indexes
+
+- user_id
+- is_read
+- created_at
+
+---
+
+Pagination required.
+
+Never return all notifications.
+
+---
+
+# Testing Requirements
+
+✓ Notification Creation
+
+✓ Read Notification
+
+✓ Read All Notifications
+
+✓ Unread Count
+
+✓ User Isolation
+
+✓ Pagination
+
+---
+
+# Documentation Rules
+
+If notification flow changes:
+
+Update:
+
+- product-requirements.md
+- user-flows.md
+- api-specification.md
+
+---
+
+# Code Generation Checklist
+
+✓ In-App notifications only
+
+✓ Notification history persisted
+
+✓ User isolation enforced
+
+✓ Read status supported
+
+✓ Pagination implemented
+
+Notifications are secondary features and must not affect business correctness.

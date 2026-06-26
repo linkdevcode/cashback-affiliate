@@ -1,0 +1,345 @@
+---
+
+description: Dashboard Module Rules
+globs:
+* backend/**/*.cs
+* frontend/**/*.ts
+* frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Dashboard Module Rules
+
+References:
+
+* docs/product-requirements.md
+* docs/user-flows.md
+* docs/api-specification.md
+* docs/database-design.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+* User Dashboard
+* Earnings Summary
+* Cashback Statistics
+* Withdrawal Statistics
+* Affiliate Link Statistics
+
+Dashboard is a read-only aggregation module.
+
+---
+
+# Dashboard Principles
+
+Dashboard never owns data.
+
+Dashboard only aggregates data from:
+
+* Users
+* AffiliateLinks
+* Orders
+* Withdrawals
+
+Dashboard must never create or modify business data.
+
+---
+
+# User Dashboard
+
+Purpose:
+
+Provide users a quick overview of earnings.
+
+---
+
+# Dashboard Metrics
+
+Available Balance
+
+Definition:
+
+Amount available for withdrawal.
+
+Source:
+
+User.AvailableBalance
+
+---
+
+Pending Cashback
+
+Definition:
+
+Cashback waiting for approval.
+
+Source:
+
+Orders
+
+Status = Pending
+
+---
+
+Total Cashback Earned
+
+Definition:
+
+Approved cashback accumulated over time.
+
+---
+
+Total Withdrawn
+
+Definition:
+
+Completed withdrawals.
+
+---
+
+Generated Links
+
+Definition:
+
+Total affiliate links generated.
+
+---
+
+Orders Count
+
+Definition:
+
+Total orders associated with user.
+
+---
+
+# Dashboard Query Rules
+
+All calculations must happen server-side.
+
+Forbidden:
+
+Frontend calculating balances.
+
+Example:
+
+Bad
+
+```typescript
+pendingCashback = orders
+    .filter(...)
+    .reduce(...)
+```
+
+Good
+
+Backend returns:
+
+```json
+{
+  "availableBalance": 100000,
+  "pendingCashback": 50000
+}
+```
+
+---
+
+# Dashboard Performance Rules
+
+Dashboard must use aggregated queries.
+
+Avoid:
+
+Loading all orders.
+
+Loading all withdrawals.
+
+Then calculating in memory.
+
+---
+
+Preferred:
+
+SQL aggregation.
+
+Examples:
+
+SUM()
+
+COUNT()
+
+GROUP BY
+
+---
+
+# Dashboard Refresh Rules
+
+Dashboard data should be near real-time.
+
+Acceptable delay:
+
+0 - 5 minutes
+
+---
+
+Do not implement caching in MVP.
+
+---
+
+# Recent Activity
+
+Dashboard should show:
+
+Recent Orders
+
+Recent Withdrawals
+
+Recent Affiliate Links
+
+---
+
+Limit:
+
+Latest 10 items
+
+---
+
+# User Dashboard Endpoint
+
+GET
+
+/api/v1/dashboard
+
+Returns:
+
+* Available Balance
+* Pending Cashback
+* Total Cashback
+* Total Withdrawn
+* Total Links
+* Total Orders
+
+---
+
+# Admin Dashboard
+
+Separate from User Dashboard.
+
+Purpose:
+
+System Monitoring.
+
+---
+
+Admin Metrics
+
+Users
+
+* Total Users
+* Active Users
+* New Users Today
+
+Orders
+
+* Total Orders
+* Pending Orders
+* Approved Orders
+
+Revenue
+
+* Total Commission
+* Total Cashback Paid
+* Platform Profit
+
+Withdrawals
+
+* Pending Withdrawals
+* Completed Withdrawals
+
+---
+
+# Security Rules
+
+User Dashboard
+
+Only current user data.
+
+---
+
+Admin Dashboard
+
+Admin only.
+
+---
+
+Never expose:
+
+* Other user balances
+* Other user financial details
+
+---
+
+# Frontend Rules
+
+Dashboard page should:
+
+* Load quickly
+* Display summary cards
+* Show recent activities
+
+---
+
+Dashboard must not:
+
+* Perform business calculations
+* Store financial state
+
+---
+
+# Testing Requirements
+
+✓ Correct balance aggregation
+
+✓ Correct cashback aggregation
+
+✓ Correct withdrawal aggregation
+
+✓ User isolation
+
+✓ Admin authorization
+
+✓ Empty state handling
+
+---
+
+# Documentation Rules
+
+If dashboard metrics change:
+
+Update:
+
+* product-requirements.md
+* api-specification.md
+* user-flows.md
+
+---
+
+# Code Generation Checklist
+
+✓ Read-only module
+
+✓ Aggregated queries
+
+✓ No business logic
+
+✓ Server-side calculations
+
+✓ User isolation enforced
+
+✓ Admin dashboard separated
+
+Dashboard is a reporting layer, not a business layer.

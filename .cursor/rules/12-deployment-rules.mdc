@@ -1,0 +1,500 @@
+---
+
+description: Deployment Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+- docker/**
+alwaysApply: true
+
+---
+
+# Deployment Rules
+
+References:
+
+- docs/deployment-guide.md
+- docs/tech-architecture.md
+
+---
+
+# Purpose
+
+Ensure deployments are:
+
+- Repeatable
+- Reliable
+- Observable
+- Secure
+
+---
+
+# Deployment Strategy
+
+Environment Promotion
+
+Development
+
+↓
+
+Staging
+
+↓
+
+Production
+
+---
+
+Never deploy directly from local machine to production.
+
+---
+
+# Environment Rules
+
+Supported Environments
+
+Development
+
+Staging
+
+Production
+
+---
+
+Environment specific settings must be externalized.
+
+---
+
+Forbidden
+
+```json
+{
+  "ConnectionString": "Production Database"
+}
+```
+
+---
+
+Use environment variables.
+
+---
+
+# Configuration Rules
+
+All configurable values must come from:
+
+Environment Variables
+
+Configuration Files
+
+Secret Store
+
+---
+
+Examples
+
+Database Connection String
+
+JWT Secret
+
+Google OAuth Secret
+
+Webhook Secret
+
+Provider Tokens
+
+---
+
+Never hardcode environment values.
+
+---
+
+# Infrastructure
+
+Recommended MVP
+
+Frontend
+
+Vercel
+
+---
+
+Backend
+
+Docker Container
+
+---
+
+Database
+
+PostgreSQL
+
+---
+
+Cache
+
+Redis (Future)
+
+---
+
+Background Jobs
+
+Hangfire
+
+---
+
+# Docker Rules
+
+Backend must support Docker.
+
+Required Files
+
+Dockerfile
+
+.dockerignore
+
+---
+
+Container must be stateless.
+
+---
+
+Do not store:
+
+User Files
+
+Logs
+
+Temporary Data
+
+inside containers.
+
+---
+
+# Database Migration Rules
+
+Use:
+
+EF Core Migrations
+
+---
+
+Never manually modify production schema.
+
+---
+
+Deployment Flow
+
+Deploy
+
+↓
+
+Run Migration
+
+↓
+
+Start Application
+
+---
+
+Migrations must be version controlled.
+
+---
+
+# Health Checks
+
+Required Endpoint
+
+```text
+/health
+```
+
+---
+
+Must verify
+
+Application
+
+Database
+
+Provider Connectivity (optional)
+
+---
+
+Deployment should fail if health check fails.
+
+---
+
+# CI/CD Rules
+
+Recommended
+
+GitHub Actions
+
+---
+
+Pipeline
+
+Build
+
+↓
+
+Test
+
+↓
+
+Lint
+
+↓
+
+Package
+
+↓
+
+Deploy
+
+---
+
+Production deployment requires:
+
+Successful build
+
+Successful tests
+
+---
+
+# Release Rules
+
+Version Format
+
+```text
+v1.0.0
+```
+
+Semantic Versioning
+
+---
+
+Major
+
+Breaking Changes
+
+---
+
+Minor
+
+New Features
+
+---
+
+Patch
+
+Bug Fixes
+
+---
+
+# Rollback Rules
+
+Every deployment must support rollback.
+
+---
+
+Rollback should restore:
+
+Application Version
+
+Configuration
+
+---
+
+Database rollback should be carefully planned.
+
+---
+
+# Logging Rules
+
+Environment
+
+Application Version
+
+Deployment Time
+
+must be logged at startup.
+
+---
+
+# Monitoring Rules
+
+Monitor
+
+Application Health
+
+Error Rate
+
+Response Time
+
+Webhook Failures
+
+Background Job Failures
+
+---
+
+# Backup Rules
+
+Database Backups
+
+Daily
+
+---
+
+Retention
+
+Minimum 30 Days
+
+---
+
+Backup restore procedure should be documented.
+
+---
+
+# Production Rules
+
+Production must:
+
+Use HTTPS
+
+Use Secure Secrets
+
+Enable Logging
+
+Enable Monitoring
+
+Enable Health Checks
+
+---
+
+Disable:
+
+Swagger UI (public access)
+
+Detailed Exception Pages
+
+Debug Endpoints
+
+---
+
+# Frontend Deployment
+
+Build Artifacts Only.
+
+---
+
+Do not expose:
+
+API Secrets
+
+Provider Secrets
+
+Environment Secrets
+
+---
+
+Frontend environment variables must be public-safe.
+
+---
+
+# Backend Deployment
+
+Run as non-root user.
+
+---
+
+Expose only required ports.
+
+---
+
+Avoid unnecessary packages in image.
+
+---
+
+# Scaling Rules
+
+MVP
+
+Single Backend Instance
+
+---
+
+Future
+
+Horizontal Scaling
+
+Load Balancer
+
+Redis Cache
+
+Background Workers
+
+---
+
+# Disaster Recovery
+
+Must Document
+
+Backup Procedure
+
+Restore Procedure
+
+Rollback Procedure
+
+---
+
+# Testing Requirements
+
+✓ Docker Build
+
+✓ Migration Execution
+
+✓ Health Check
+
+✓ Environment Variables
+
+✓ Production Configuration
+
+✓ CI Pipeline
+
+✓ Rollback Procedure
+
+---
+
+# Documentation Rules
+
+If deployment changes:
+
+Update
+
+- deployment-guide.md
+- tech-architecture.md
+
+---
+
+# Code Generation Checklist
+
+✓ Docker Support
+
+✓ Environment Variables
+
+✓ Health Checks
+
+✓ EF Migrations
+
+✓ CI/CD Ready
+
+✓ Backup Strategy
+
+✓ Monitoring Enabled
+
+✓ Rollback Supported
+
+Deployment reliability is a feature, not an afterthought.

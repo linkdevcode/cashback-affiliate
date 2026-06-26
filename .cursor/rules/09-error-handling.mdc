@@ -1,0 +1,404 @@
+---
+
+description: Error Handling Rules
+globs:
+- backend/**/*.cs
+alwaysApply: true
+
+---
+
+# Error Handling Rules
+
+References:
+
+- docs/tech-architecture.md
+- docs/coding-standards.md
+
+---
+
+# Purpose
+
+Provide consistent error handling across the entire system.
+
+Goals:
+
+- Predictable API responses
+- Easier debugging
+- Better user experience
+- Improved maintainability
+
+---
+
+# Core Principle
+
+Never expose internal exceptions to clients.
+
+---
+
+Bad
+
+```csharp
+return ex.ToString();
+```
+
+---
+
+Good
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "An unexpected error occurred."
+  }
+}
+```
+
+---
+
+# Exception Categories
+
+BusinessException
+
+Examples:
+
+- Insufficient Balance
+- Withdrawal Not Allowed
+- Invalid Cashback Rate
+
+---
+
+ValidationException
+
+Examples:
+
+- Invalid Email
+- Invalid URL
+- Missing Required Field
+
+---
+
+NotFoundException
+
+Examples:
+
+- User Not Found
+- Order Not Found
+- Withdrawal Not Found
+
+---
+
+UnauthorizedException
+
+Examples:
+
+- Invalid Token
+- Missing Authentication
+
+---
+
+ForbiddenException
+
+Examples:
+
+- User Accessing Other User Data
+- Non Admin Access
+
+---
+
+InfrastructureException
+
+Examples:
+
+- Database Failure
+- Provider API Failure
+- Redis Failure
+
+---
+
+# Global Exception Middleware
+
+Required
+
+Use centralized exception middleware.
+
+---
+
+Controllers must not:
+
+- Catch generic exceptions
+- Return custom error structures
+
+---
+
+Middleware is responsible for:
+
+- Logging
+- Status Code Mapping
+- Error Response Formatting
+
+---
+
+# HTTP Status Mapping
+
+ValidationException
+
+↓
+
+400 Bad Request
+
+---
+
+UnauthorizedException
+
+↓
+
+401 Unauthorized
+
+---
+
+ForbiddenException
+
+↓
+
+403 Forbidden
+
+---
+
+NotFoundException
+
+↓
+
+404 Not Found
+
+---
+
+BusinessException
+
+↓
+
+409 Conflict
+
+---
+
+Unhandled Exception
+
+↓
+
+500 Internal Server Error
+
+---
+
+# API Error Response Format
+
+Standard format
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INSUFFICIENT_BALANCE",
+    "message": "Available balance is insufficient."
+  }
+}
+```
+
+---
+
+All APIs must use same format.
+
+---
+
+# Validation Rules
+
+Use FluentValidation.
+
+---
+
+Never validate:
+
+Inside Controller
+
+Inside Repository
+
+---
+
+Validation belongs to:
+
+Command Validators
+
+Query Validators
+
+---
+
+# Business Rules
+
+Business validation belongs to:
+
+Application Layer
+
+---
+
+Examples
+
+Withdrawal Amount
+
+Cashback Rules
+
+Order State Transitions
+
+---
+
+# Infrastructure Failures
+
+Provider API Failure
+
+↓
+
+Throw InfrastructureException
+
+---
+
+Database Failure
+
+↓
+
+Throw InfrastructureException
+
+---
+
+Do not return raw exception messages.
+
+---
+
+# Retryable Errors
+
+Examples
+
+- Network Failure
+- Provider Timeout
+- Temporary Database Failure
+
+---
+
+Should be retried by:
+
+Background Jobs
+
+---
+
+# Non Retryable Errors
+
+Examples
+
+- Invalid Input
+- Invalid User
+- Invalid Configuration
+
+---
+
+Do not retry.
+
+---
+
+# Frontend Error Handling
+
+Frontend should display:
+
+User Friendly Messages
+
+---
+
+Bad
+
+```text
+NullReferenceException
+```
+
+---
+
+Good
+
+```text
+Unable to process your request. Please try again later.
+```
+
+---
+
+# Security Rules
+
+Never expose:
+
+- Stack Traces
+- Connection Strings
+- SQL Queries
+- API Secrets
+- JWT Secrets
+
+---
+
+# Logging Rules
+
+Every exception must be logged.
+
+---
+
+Log:
+
+- Exception Type
+- Message
+- Correlation Id
+- Request Path
+
+---
+
+# Correlation Id
+
+Every request must contain:
+
+CorrelationId
+
+---
+
+Purpose
+
+Trace requests across services.
+
+---
+
+# Testing Requirements
+
+✓ Validation Exception
+
+✓ Business Exception
+
+✓ Not Found Exception
+
+✓ Unauthorized Exception
+
+✓ Forbidden Exception
+
+✓ Infrastructure Exception
+
+✓ Global Middleware
+
+✓ Error Response Format
+
+---
+
+# Code Generation Checklist
+
+✓ Global exception middleware
+
+✓ Standard error response
+
+✓ FluentValidation used
+
+✓ No controller try/catch
+
+✓ No stack trace exposure
+
+✓ Correlation Id supported
+
+Error consistency is more important than custom handling.

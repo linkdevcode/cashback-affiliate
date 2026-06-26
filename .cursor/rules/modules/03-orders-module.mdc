@@ -1,0 +1,776 @@
+---
+
+description: Orders Module Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Orders Module Rules
+
+References:
+
+- docs/product-requirements.md
+- docs/database-design.md
+- docs/enums.md
+- docs/user-flows.md
+- docs/api-specification.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+- Order Tracking
+- Commission Tracking
+- Cashback Calculation
+- Order Status Management
+- User Earnings
+- Balance Updates
+
+The Orders Module is the financial core of the platform.
+
+---
+
+# Source Of Data
+
+Primary Source:
+
+Accesstrade Postback
+
+Secondary Source:
+
+Accesstrade Reporting API
+
+---
+
+Frontend is NEVER a source of truth.
+
+Orders must never be created manually by users.
+
+---
+
+# Core Flow
+
+User
+
+↓
+
+Generate Affiliate Link
+
+↓
+
+Purchase Product
+
+↓
+
+Accesstrade Receives Conversion
+
+↓
+
+Webhook Arrives
+
+↓
+
+Order Created
+
+↓
+
+Order Pending
+
+↓
+
+Order Approved
+
+↓
+
+Cashback Calculated
+
+↓
+
+User Balance Updated
+
+---
+
+# Order Entity
+
+Represents an affiliate conversion.
+
+Suggested fields:
+
+- Id
+- ProviderOrderId
+- UserId
+- AffiliateLinkId
+- Provider
+- OrderValue
+- CommissionAmount
+- CashbackAmount
+- Status
+- ApprovedAt
+- RejectedAt
+- CreatedAt
+- UpdatedAt
+
+---
+
+# Source Of Truth
+
+Orders table is the source of truth.
+
+Do not derive order history from webhook logs.
+
+Persist all orders.
+
+---
+
+# Provider Order Id Rules
+
+ProviderOrderId must be unique.
+
+Example:
+
+```text
+AT_123456789
+```
+
+Duplicate provider orders must not create duplicate records.
+
+---
+
+# Order Status Rules
+
+Use enums from:
+
+docs/enums.md
+
+Allowed statuses:
+
+Pending
+
+Approved
+
+Rejected
+
+Cancelled
+
+---
+
+Lifecycle:
+
+Pending
+
+↓
+
+Approved
+
+OR
+
+Rejected
+
+OR
+
+Cancelled
+
+---
+
+Forbidden:
+
+Approved
+
+↓
+
+Pending
+
+---
+
+Rejected
+
+↓
+
+Approved
+
+---
+
+Cancelled
+
+↓
+
+Approved
+
+---
+
+Order status transitions must be explicit.
+
+---
+
+# Commission Rules
+
+CommissionAmount
+
+Represents amount received from provider.
+
+Example:
+
+```text
+Commission = 100,000 VND
+```
+
+This value comes from Accesstrade.
+
+Never calculate provider commission internally.
+
+---
+
+# Cashback Rules
+
+CashbackAmount
+
+Represents user reward.
+
+Formula:
+
+```text
+Cashback = Commission × CashbackPercentage
+```
+
+Example:
+
+```text
+Commission = 100,000
+
+Cashback Rate = 80%
+
+Cashback = 80,000
+```
+
+---
+
+Cashback percentage must come from configuration.
+
+Never hardcode.
+
+---
+
+# Cashback Timing Rules
+
+Important:
+
+Cashback is NOT credited immediately.
+
+Allowed:
+
+Pending Order
+
+↓
+
+No Balance Change
+
+---
+
+Approved Order
+
+↓
+
+Credit Balance
+
+---
+
+Rejected Order
+
+↓
+
+No Balance Change
+
+---
+
+Cancelled Order
+
+↓
+
+No Balance Change
+
+---
+
+# User Balance Rules
+
+Balance updates only occur when:
+
+Order Status
+
+↓
+
+Approved
+
+---
+
+Never update balance during:
+
+Pending
+
+Rejected
+
+Cancelled
+
+---
+
+# Financial Transaction Rules
+
+Every balance update must create a transaction record.
+
+Suggested entity:
+
+CommissionTransaction
+
+Fields:
+
+- Id
+- UserId
+- OrderId
+- Amount
+- TransactionType
+- CreatedAt
+
+---
+
+Purpose:
+
+Auditability
+
+Financial history
+
+Dispute resolution
+
+---
+
+# Transaction Types
+
+Use enums.
+
+Examples:
+
+CashbackEarned
+
+CashbackReversed
+
+Withdrawal
+
+Adjustment
+
+---
+
+Never hardcode strings.
+
+---
+
+# Idempotency Rules
+
+Critical Requirement
+
+Webhook processing must be idempotent.
+
+Duplicate webhook:
+
+✓ Allowed
+
+Duplicate balance update:
+
+✗ Forbidden
+
+---
+
+Example
+
+Webhook arrives twice
+
+↓
+
+Order exists
+
+↓
+
+Ignore duplicate processing
+
+---
+
+Users must never receive duplicate cashback.
+
+---
+
+# Duplicate Detection Rules
+
+Use:
+
+ProviderOrderId
+
+as primary uniqueness key.
+
+---
+
+Additionally store:
+
+ProviderEventId
+
+if available.
+
+---
+
+# Webhook Update Rules
+
+Webhook may:
+
+Create Order
+
+Update Order Status
+
+Update Commission
+
+---
+
+Webhook must never:
+
+Delete Order
+
+Delete Financial Transactions
+
+---
+
+# Reversal Rules
+
+If provider reverses commission:
+
+Approved
+
+↓
+
+Rejected
+
+or
+
+Approved
+
+↓
+
+Cancelled
+
+---
+
+Create reversal transaction.
+
+Example:
+
+CashbackEarned
+
++80,000
+
+↓
+
+CashbackReversed
+
+-80,000
+
+---
+
+Balance must remain consistent.
+
+---
+
+# Order Ownership Rules
+
+Order belongs to:
+
+User identified by Sub1.
+
+Example:
+
+```text
+sub1=user_123
+```
+
+↓
+
+UserId = 123
+
+---
+
+Never trust user-supplied order ownership.
+
+---
+
+# Dashboard Contribution
+
+Orders Module provides:
+
+- Total Earnings
+- Pending Earnings
+- Approved Earnings
+- Cashback History
+
+---
+
+Dashboard calculations should come from database.
+
+Not frontend calculations.
+
+---
+
+# Query Rules
+
+All order listings must support:
+
+Pagination
+
+Filtering
+
+Sorting
+
+---
+
+Filters:
+
+Status
+
+Date Range
+
+Provider
+
+---
+
+# Frontend Rules
+
+Orders Page
+
+Responsibilities:
+
+- View Orders
+- Filter Orders
+- View Cashback
+
+---
+
+Frontend must not:
+
+- Calculate earnings
+- Calculate balances
+- Infer order status
+
+Backend is source of truth.
+
+---
+
+# Required Endpoints
+
+GET
+
+/api/v1/orders
+
+Purpose:
+
+List user orders.
+
+---
+
+GET
+
+/api/v1/orders/{id}
+
+Purpose:
+
+Order details.
+
+---
+
+GET
+
+/api/v1/orders/summary
+
+Purpose:
+
+Order summary.
+
+---
+
+# Required Queries
+
+GetOrdersQuery
+
+GetOrderDetailQuery
+
+GetOrderSummaryQuery
+
+---
+
+# Security Rules
+
+User can access:
+
+Own Orders Only
+
+---
+
+Admin can access:
+
+All Orders
+
+---
+
+Never expose:
+
+- Other user orders
+- Provider secrets
+- Internal audit data
+
+---
+
+# Logging Rules
+
+Log:
+
+✓ Order Created
+
+✓ Order Approved
+
+✓ Order Rejected
+
+✓ Cashback Credited
+
+✓ Cashback Reversed
+
+✓ Duplicate Webhook
+
+---
+
+Never log:
+
+✗ Tokens
+
+✗ Secrets
+
+✗ Sensitive user information
+
+---
+
+# Performance Rules
+
+Create indexes:
+
+- user_id
+- provider_order_id
+- status
+- created_at
+
+---
+
+Use pagination always.
+
+Never load all orders.
+
+---
+
+# Testing Requirements
+
+Must Test
+
+Order Creation
+
+✓ New Order
+
+✓ Duplicate Order
+
+---
+
+Order Status
+
+✓ Pending
+
+✓ Approved
+
+✓ Rejected
+
+✓ Cancelled
+
+---
+
+Cashback
+
+✓ Correct Calculation
+
+✓ Configurable Percentage
+
+---
+
+Balance Updates
+
+✓ Approved Order Credits Balance
+
+✓ Pending Does Not
+
+✓ Rejected Does Not
+
+---
+
+Idempotency
+
+✓ Duplicate Webhook Ignored
+
+✓ Duplicate Cashback Prevented
+
+---
+
+Reversal
+
+✓ Cashback Reversal
+
+✓ Balance Adjustment
+
+---
+
+Security
+
+✓ User Cannot View Other User Orders
+
+✓ Admin Can View All Orders
+
+---
+
+# Documentation Rules
+
+If order lifecycle changes:
+
+Update:
+
+- product-requirements.md
+- api-specification.md
+- database-design.md
+- user-flows.md
+- enums.md
+
+---
+
+# Code Generation Checklist
+
+✓ ProviderOrderId unique
+
+✓ Status transitions validated
+
+✓ Cashback configurable
+
+✓ Balance updated only on approval
+
+✓ Financial transactions recorded
+
+✓ Duplicate webhook protected
+
+✓ Idempotent processing
+
+✓ Reversal supported
+
+✓ Ownership from Sub1
+
+✓ Audit trail maintained
+
+Financial correctness is more important than performance.

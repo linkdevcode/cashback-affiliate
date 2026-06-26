@@ -1,0 +1,632 @@
+---
+
+description: Affiliate Module Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Affiliate Module Rules
+
+References:
+
+- docs/product-requirements.md
+- docs/database-design.md
+- docs/enums.md
+- docs/user-flows.md
+- docs/api-specification.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+- Affiliate Link Generation
+- Deeplink Generation
+- Click Tracking
+- Affiliate Link History
+- Campaign Mapping
+- Cashback Estimation
+
+This module is the revenue engine of the platform.
+
+---
+
+# MVP Affiliate Provider
+
+Primary Provider:
+
+Accesstrade
+
+Future Providers:
+
+- Ecomobi
+- MasOffer
+- In-house affiliate sources
+
+For MVP:
+
+Only Accesstrade is supported.
+
+Do not build multi-provider complexity yet.
+
+---
+
+# Supported Affiliate Sources
+
+MVP Supported:
+
+- Shopee
+- Lazada (future-ready)
+
+Initially optimize for Shopee.
+
+---
+
+# Core Flow
+
+User
+
+↓
+
+Paste Product URL
+
+↓
+
+Validate URL
+
+↓
+
+Generate Tracking Parameters
+
+↓
+
+Call Accesstrade Deeplink API
+
+↓
+
+Save AffiliateLink
+
+↓
+
+Return Short Link
+
+---
+
+# AffiliateLink Entity
+
+Represents a generated affiliate link.
+
+Suggested fields:
+
+- Id
+- UserId
+- OriginalUrl
+- AffiliateUrl
+- ShortUrl
+- CampaignId
+- Sub1
+- Sub2
+- Sub3
+- Provider
+- CreatedAt
+- UpdatedAt
+
+---
+
+# Source Of Truth
+
+AffiliateLink table is the source of truth.
+
+Never reconstruct links from order data.
+
+Always persist generated links.
+
+---
+
+# Supported URL Rules
+
+Allowed:
+
+✓ Shopee Product URLs
+
+✓ Shopee Campaign URLs
+
+✓ Shopee Mall URLs
+
+Future:
+
+- Lazada URLs
+
+---
+
+Reject:
+
+- Empty URLs
+- Invalid URLs
+- Unsupported domains
+
+---
+
+# URL Validation Rules
+
+Must validate:
+
+- Valid URL format
+- Supported domain
+- Non-empty
+
+Validation belongs in:
+
+GenerateAffiliateLinkValidator
+
+Not in controller.
+
+---
+
+# Campaign Rules
+
+Campaign configuration must be externalized.
+
+Do NOT hardcode:
+
+```csharp
+campaignId = "4348614231480407268";
+```
+
+Use configuration.
+
+Example:
+
+AffiliateOptions
+
+↓
+
+ShopeeCampaignId
+
+---
+
+# Tracking Rules
+
+Every generated link must contain tracking identifiers.
+
+Required:
+
+Sub1
+
+Optional:
+
+Sub2
+
+Sub3
+
+---
+
+# Sub Parameter Strategy
+
+Sub1 = UserId
+
+Example:
+
+```text
+sub1 = user_123
+```
+
+Purpose:
+
+Associate future commissions to user.
+
+---
+
+Sub2
+
+Reserved for:
+
+Traffic Source
+
+Example:
+
+```text
+web
+mobile
+```
+
+---
+
+Sub3
+
+Reserved for:
+
+Marketing Campaign
+
+Future usage.
+
+---
+
+# Deeplink Generation Rules
+
+All deeplink generation must use:
+
+IAccesstradeClient
+
+Never call HttpClient directly.
+
+---
+
+Infrastructure Layer Responsibility
+
+AccesstradeClient
+
+↓
+
+Generate Deeplink
+
+↓
+
+Return Affiliate URL
+
+---
+
+# Generate Affiliate Link Command
+
+Example:
+
+GenerateAffiliateLinkCommand
+
+Input:
+
+- OriginalUrl
+
+Output:
+
+- AffiliateUrl
+- ShortUrl
+
+---
+
+# Duplicate Generation Rules
+
+Users may generate the same URL multiple times.
+
+This is allowed.
+
+Do not block duplicates.
+
+Each request generates a new tracking record.
+
+---
+
+# Click Tracking Rules
+
+Every generated link should create a click tracking record.
+
+Suggested Entity:
+
+AffiliateClick
+
+Fields:
+
+- Id
+- UserId
+- AffiliateLinkId
+- ClickedAt
+- Source
+
+---
+
+Purpose:
+
+Analytics
+
+Future fraud detection
+
+Conversion tracking
+
+---
+
+# Cashback Rules
+
+Affiliate Module may estimate cashback.
+
+Actual cashback comes from Orders Module.
+
+Important:
+
+Estimated Cashback
+
+≠
+
+Confirmed Cashback
+
+Never treat estimated cashback as balance.
+
+---
+
+# Cashback Rate Rules
+
+Cashback percentage should come from configuration.
+
+Example:
+
+Shopee
+
+80%
+
+Meaning:
+
+Platform receives:
+
+100%
+
+User receives:
+
+80%
+
+Platform keeps:
+
+20%
+
+---
+
+Never hardcode percentages.
+
+---
+
+# Provider Abstraction
+
+Use abstraction.
+
+Example:
+
+IAffiliateProvider
+
+Methods:
+
+GenerateLinkAsync()
+
+Future providers can implement same contract.
+
+---
+
+MVP implementation:
+
+AccesstradeAffiliateProvider
+
+---
+
+# Error Handling
+
+Common failures:
+
+- Invalid URL
+- Accesstrade unavailable
+- Invalid campaign
+- API timeout
+
+Return business-friendly messages.
+
+Do not expose provider internals.
+
+---
+
+# Rate Limiting
+
+Protect affiliate generation endpoint.
+
+Examples:
+
+100 requests/hour/user
+
+Configurable.
+
+---
+
+# Analytics Rules
+
+Track:
+
+- Total Links Generated
+- Total Clicks
+- Top Users
+- Conversion Rate
+
+Analytics should never affect transaction processing.
+
+---
+
+# Dashboard Integration
+
+Affiliate Module contributes:
+
+Dashboard Metrics
+
+Examples:
+
+- Links Generated
+- Clicks
+- Estimated Cashback
+
+---
+
+# Security Rules
+
+Never trust:
+
+- UserId from frontend
+- Provider response blindly
+
+Always validate current authenticated user.
+
+---
+
+# Logging Rules
+
+Log:
+
+✓ Link Generation
+
+✓ Provider Errors
+
+✓ API Failures
+
+✓ Campaign Failures
+
+---
+
+Never log:
+
+✗ Tokens
+
+✗ Secrets
+
+✗ Authorization headers
+
+---
+
+# Frontend Rules
+
+Affiliate Link Page
+
+Responsibilities:
+
+- Paste URL
+- Submit request
+- Display generated link
+- Copy link
+
+---
+
+Frontend must not:
+
+- Build affiliate links manually
+- Generate sub parameters
+- Calculate cashback
+
+Backend owns all logic.
+
+---
+
+# Required Endpoints
+
+POST
+
+/api/v1/affiliate-links/generate
+
+Purpose:
+
+Generate affiliate link.
+
+---
+
+GET
+
+/api/v1/affiliate-links
+
+Purpose:
+
+User history.
+
+---
+
+GET
+
+/api/v1/affiliate-links/{id}
+
+Purpose:
+
+Link details.
+
+---
+
+# Required Commands
+
+GenerateAffiliateLinkCommand
+
+---
+
+# Required Queries
+
+GetAffiliateLinksQuery
+
+GetAffiliateLinkDetailQuery
+
+---
+
+# Testing Requirements
+
+Must Test
+
+URL Validation
+
+✓ Valid URL
+
+✓ Invalid URL
+
+✓ Unsupported Domain
+
+---
+
+Link Generation
+
+✓ Success
+
+✓ Provider Failure
+
+✓ Timeout
+
+---
+
+Tracking
+
+✓ Sub1 generated
+
+✓ User association correct
+
+---
+
+Security
+
+✓ User cannot access another user's links
+
+---
+
+# Documentation Rules
+
+If affiliate flow changes:
+
+Update:
+
+- product-requirements.md
+- api-specification.md
+- user-flows.md
+- database-design.md
+
+---
+
+# Code Generation Checklist
+
+✓ Accesstrade only
+
+✓ Campaign ID configurable
+
+✓ Sub1 contains UserId
+
+✓ URL validation exists
+
+✓ AffiliateLink persisted
+
+✓ Provider abstraction used
+
+✓ No hardcoded cashback rates
+
+✓ No direct HttpClient calls
+
+✓ Authenticated user enforced
+
+✓ Tracking supported
+
+Affiliate tracking accuracy is more important than implementation speed.

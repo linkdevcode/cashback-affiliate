@@ -1,0 +1,438 @@
+---
+
+description: Database Rules
+globs:
+- backend/**/*.cs
+alwaysApply: true
+
+---
+
+# Database Rules
+
+References:
+
+- docs/database-design.md
+- docs/enums.md
+- docs/tech-architecture.md
+
+---
+
+# Database Engine
+
+Primary Database
+
+- PostgreSQL
+
+ORM
+
+- Entity Framework Core
+
+---
+
+# Source Of Truth
+
+Database schema must follow:
+
+docs/database-design.md
+
+Do not invent tables.
+
+Do not invent columns.
+
+Do not invent relationships.
+
+If schema changes:
+
+Update documentation first.
+
+Then update code.
+
+---
+
+# Entity Rules
+
+One entity = one table.
+
+Examples:
+
+User
+
+AffiliateLink
+
+Order
+
+WithdrawRequest
+
+CommissionTransaction
+
+AuditLog
+
+---
+
+# Naming Conventions
+
+Tables
+
+snake_case
+
+Examples:
+
+```sql
+users
+orders
+affiliate_links
+withdraw_requests
+```
+
+---
+
+Columns
+
+snake_case
+
+Examples:
+
+```sql
+created_at
+updated_at
+available_balance
+```
+
+---
+
+Primary Keys
+
+```sql
+id
+```
+
+UUID preferred.
+
+---
+
+Foreign Keys
+
+Pattern:
+
+```sql
+user_id
+order_id
+withdraw_request_id
+```
+
+---
+
+# Audit Columns
+
+Every table must contain:
+
+```sql
+created_at
+updated_at
+```
+
+Optional:
+
+```sql
+created_by
+updated_by
+```
+
+---
+
+# Soft Delete Rules
+
+Default:
+
+No soft delete for MVP.
+
+Use hard delete only if business allows.
+
+Critical tables:
+
+- users
+- orders
+- withdrawals
+
+should generally remain historical.
+
+---
+
+# Migration Rules
+
+All schema changes require migration.
+
+Never modify existing migrations.
+
+Always create new migration.
+
+Good:
+
+```bash
+dotnet ef migrations add AddWithdrawalBankInfo
+```
+
+Bad:
+
+Editing old migration files.
+
+---
+
+# Entity Configuration Rules
+
+Use:
+
+```csharp
+IEntityTypeConfiguration<T>
+```
+
+One configuration file per entity.
+
+Examples:
+
+```text
+UserConfiguration.cs
+OrderConfiguration.cs
+```
+
+---
+
+# Fluent API Rules
+
+Use Fluent API.
+
+Preferred:
+
+```csharp
+builder.Property(x => x.Email)
+       .HasMaxLength(255)
+       .IsRequired();
+```
+
+Avoid DataAnnotations.
+
+---
+
+# Relationship Rules
+
+Explicitly define relationships.
+
+Good:
+
+```csharp
+builder
+ .HasOne(...)
+ .WithMany(...)
+```
+
+Avoid relying on EF conventions alone.
+
+---
+
+# Index Rules
+
+Create indexes for:
+
+- user_id
+- order_id
+- status
+- created_at
+
+Examples:
+
+```csharp
+builder.HasIndex(x => x.UserId);
+```
+
+---
+
+# Financial Data Rules
+
+Never use:
+
+```csharp
+float
+double
+```
+
+Use:
+
+```csharp
+decimal(18,2)
+```
+
+Examples:
+
+- commission_amount
+- cashback_amount
+- available_balance
+
+---
+
+# Enum Rules
+
+Database values must map to:
+
+docs/enums.md
+
+Never hardcode magic numbers.
+
+Bad:
+
+```csharp
+status = 2;
+```
+
+Good:
+
+```csharp
+status = OrderStatus.Approved;
+```
+
+---
+
+# Transaction Rules
+
+Must use transactions when:
+
+- Updating balances
+- Approving withdrawals
+- Processing commissions
+- Processing webhook events
+
+Example:
+
+```csharp
+BeginTransactionAsync()
+CommitAsync()
+RollbackAsync()
+```
+
+---
+
+# Concurrency Rules
+
+Financial operations require protection.
+
+Consider:
+
+- Row locking
+- Concurrency tokens
+
+Critical operations:
+
+- Withdrawal approval
+- Commission settlement
+
+---
+
+# Query Rules
+
+Read-only queries:
+
+```csharp
+AsNoTracking()
+```
+
+Always paginate large result sets.
+
+Never load entire tables.
+
+---
+
+# Pagination Rules
+
+Default page size:
+
+```text
+20
+```
+
+Maximum page size:
+
+```text
+100
+```
+
+---
+
+# Seed Data Rules
+
+Allowed:
+
+- Admin User
+- Enum Reference Data
+
+Do not seed fake business transactions.
+
+---
+
+# Backup Rules
+
+Production database:
+
+- Daily backups
+- 30-day retention
+
+Never run destructive scripts without backup.
+
+---
+
+# Performance Rules
+
+Avoid:
+
+```csharp
+.ToList()
+```
+
+before filtering.
+
+Prefer:
+
+```csharp
+.Where(...)
+.Select(...)
+```
+
+before execution.
+
+---
+
+# Security Rules
+
+Never store:
+
+- Plain text passwords
+- API secrets
+- OAuth secrets
+
+Passwords (if used) must be hashed.
+
+Sensitive data should be encrypted when necessary.
+
+---
+
+# Code Generation Checklist
+
+✓ Follow database-design.md
+
+✓ Follow enums.md
+
+✓ UUID keys
+
+✓ snake_case naming
+
+✓ Fluent API
+
+✓ IEntityTypeConfiguration
+
+✓ Decimal for money
+
+✓ Transactions for finance
+
+✓ Proper indexes
+
+✓ Migrations created
+
+✓ No schema invention

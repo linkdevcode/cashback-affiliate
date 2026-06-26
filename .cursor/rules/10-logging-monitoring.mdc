@@ -1,0 +1,450 @@
+---
+
+description: Logging and Monitoring Rules
+globs:
+- backend/**/*.cs
+alwaysApply: true
+
+---
+
+# Logging and Monitoring Rules
+
+References:
+
+- docs/tech-architecture.md
+- docs/deployment-guide.md
+
+---
+
+# Purpose
+
+Provide observability for production systems.
+
+Goals:
+
+- Troubleshooting
+- Monitoring
+- Auditing
+- Incident Investigation
+
+---
+
+# Core Principle
+
+If an event is important enough to investigate later,
+it must be logged.
+
+---
+
+# Logging Framework
+
+Recommended:
+
+Serilog
+
+---
+
+Providers
+
+Console
+
+File
+
+Database (optional)
+
+---
+
+# Log Levels
+
+Trace
+
+Development only.
+
+---
+
+Debug
+
+Detailed diagnostics.
+
+---
+
+Information
+
+Normal business events.
+
+---
+
+Warning
+
+Unexpected but recoverable.
+
+---
+
+Error
+
+Failed operation.
+
+---
+
+Critical
+
+System instability.
+
+---
+
+# Information Logs
+
+Examples
+
+User Logged In
+
+Affiliate Link Generated
+
+Withdrawal Created
+
+Withdrawal Approved
+
+Webhook Received
+
+Order Approved
+
+---
+
+# Warning Logs
+
+Examples
+
+Invalid Webhook Signature
+
+Failed Login Attempt
+
+Duplicate Webhook
+
+Rate Limit Triggered
+
+---
+
+# Error Logs
+
+Examples
+
+Provider API Failure
+
+Database Failure
+
+Webhook Processing Failure
+
+Job Failure
+
+---
+
+# Critical Logs
+
+Examples
+
+Database Unavailable
+
+JWT Validation Failure Due To Configuration
+
+Application Startup Failure
+
+---
+
+# Structured Logging
+
+Required
+
+Bad
+
+```csharp
+logger.LogInformation($"User {userId} created order");
+```
+
+---
+
+Good
+
+```csharp
+logger.LogInformation(
+    "Order created by user {UserId}",
+    userId
+);
+```
+
+---
+
+All logs must be structured.
+
+---
+
+# Sensitive Data Rules
+
+Never log:
+
+- Passwords
+- JWT Tokens
+- Refresh Tokens
+- API Keys
+- Access Tokens
+- Webhook Secrets
+- Full Bank Account Numbers
+
+---
+
+Mask sensitive values.
+
+Example
+
+```text
+*****6789
+```
+
+---
+
+# Correlation Id
+
+Every request must have:
+
+CorrelationId
+
+---
+
+All logs must include:
+
+CorrelationId
+
+---
+
+Purpose
+
+Trace entire request lifecycle.
+
+---
+
+# Business Event Logging
+
+Must Log
+
+Affiliate
+
+- Link Generated
+
+Orders
+
+- Order Created
+- Order Approved
+- Order Rejected
+
+Withdrawals
+
+- Request Created
+- Approved
+- Rejected
+- Completed
+
+Admin
+
+- User Suspended
+- Settings Changed
+
+---
+
+# Audit Logs vs Application Logs
+
+Audit Logs
+
+Business History
+
+Stored in database.
+
+---
+
+Application Logs
+
+Diagnostics
+
+Stored in logging system.
+
+---
+
+Do not confuse them.
+
+---
+
+# Monitoring Metrics
+
+Track
+
+API
+
+- Request Count
+- Error Rate
+- Response Time
+
+---
+
+Webhook
+
+- Received Count
+- Failed Count
+- Duplicate Count
+
+---
+
+Jobs
+
+- Success Count
+- Failure Count
+- Retry Count
+
+---
+
+Database
+
+- Connection Failures
+- Slow Queries
+
+---
+
+# Health Checks
+
+Required
+
+Application
+
+Database
+
+Provider API
+
+---
+
+Endpoint
+
+```text
+/health
+```
+
+---
+
+Should be machine readable.
+
+---
+
+# Performance Monitoring
+
+Log Slow Requests
+
+Threshold
+
+```text
+1000 ms
+```
+
+Configurable.
+
+---
+
+Log Slow Queries
+
+Threshold
+
+```text
+500 ms
+```
+
+Configurable.
+
+---
+
+# Startup Logging
+
+Log
+
+- Application Version
+- Environment
+- Startup Success
+
+---
+
+Do not log secrets.
+
+---
+
+# Exception Logging
+
+Every unhandled exception:
+
+Must be logged exactly once.
+
+---
+
+Avoid duplicate logging.
+
+---
+
+# Dashboard Integration
+
+Future Metrics
+
+- Daily Orders
+- Daily Withdrawals
+- Error Rates
+- Webhook Success Rate
+
+---
+
+# Retention Rules
+
+Application Logs
+
+30 Days
+
+---
+
+Audit Logs
+
+Never delete automatically.
+
+---
+
+Financial Records
+
+Never delete automatically.
+
+---
+
+# Testing Requirements
+
+✓ Structured Logging
+
+✓ Correlation Id
+
+✓ Sensitive Data Masking
+
+✓ Health Check Endpoint
+
+✓ Slow Request Logging
+
+✓ Exception Logging
+
+---
+
+# Code Generation Checklist
+
+✓ Serilog used
+
+✓ Structured logging
+
+✓ Correlation Id
+
+✓ Health checks enabled
+
+✓ Sensitive data masked
+
+✓ Monitoring metrics available
+
+✓ Slow requests tracked
+
+✓ Audit logs separated
+
+Observability is mandatory for financial systems.

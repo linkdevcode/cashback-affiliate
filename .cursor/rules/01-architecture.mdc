@@ -1,0 +1,443 @@
+---
+
+description: Core Architecture Rules
+globs:
+alwaysApply: true
+-----------------
+
+# Architecture Rules
+
+These rules have the highest priority and must always be followed.
+
+If another rule conflicts with this file, this file wins.
+
+---
+
+# Project Architecture
+
+Architecture Style:
+
+- Clean Architecture
+- Modular Monolith
+- Vertical Slice Architecture
+- CQRS
+
+References:
+
+- docs/tech-architecture.md
+- docs/folder-structure.md
+- docs/coding-standards.md
+
+---
+
+# Mandatory Dependency Direction
+
+Dependencies must always point inward.
+
+Allowed:
+
+Api
+→ Application
+→ Domain
+
+Infrastructure
+→ Application
+→ Domain
+
+Persistence
+→ Domain
+
+Shared
+→ No business dependencies
+
+Contracts
+→ Shared
+
+---
+
+Forbidden:
+
+Domain
+→ Infrastructure
+
+Domain
+→ Persistence
+
+Domain
+→ Api
+
+Application
+→ Api
+
+Persistence
+→ Api
+
+Infrastructure
+→ Api
+
+---
+
+# Layer Responsibilities
+
+## Api Layer
+
+Responsibilities:
+
+- Controllers
+- Middleware
+- Authentication
+- Dependency Injection
+- Swagger
+
+Must NOT contain:
+
+- Business Logic
+- Database Queries
+- External API Calls
+
+Controllers must remain thin.
+
+---
+
+## Application Layer
+
+Responsibilities:
+
+- Commands
+- Queries
+- Handlers
+- Validators
+- DTOs
+- Use Cases
+
+All business logic belongs here.
+
+---
+
+## Domain Layer
+
+Responsibilities:
+
+- Entities
+- Enums
+- Value Objects
+- Domain Rules
+- Domain Exceptions
+
+Must remain framework independent.
+
+Must NOT contain:
+
+- EF Core
+- HTTP Clients
+- Logging
+- Infrastructure Services
+
+---
+
+## Persistence Layer
+
+Responsibilities:
+
+- DbContext
+- Entity Configurations
+- Migrations
+- Repositories
+
+Must NOT contain:
+
+- Business Logic
+- HTTP Calls
+
+---
+
+## Infrastructure Layer
+
+Responsibilities:
+
+- External APIs
+- OAuth Providers
+- Third Party Integrations
+- Email Services
+- Storage Providers
+
+Must NOT contain:
+
+- Domain Logic
+
+---
+
+# Vertical Slice Rules
+
+Every feature must be organized by feature.
+
+Preferred:
+
+Features/
+
+├── Auth
+├── Dashboard
+├── AffiliateLinks
+├── Orders
+├── Withdrawals
+├── Admin
+└── Webhooks
+
+---
+
+Each use case should have its own folder.
+
+Example:
+
+AffiliateLinks/
+
+└── GenerateAffiliateLink/
+
+```
+├── GenerateAffiliateLinkCommand.cs
+├── GenerateAffiliateLinkHandler.cs
+├── GenerateAffiliateLinkValidator.cs
+├── GenerateAffiliateLinkRequest.cs
+└── GenerateAffiliateLinkResponse.cs
+```
+
+---
+
+One Use Case = One Folder
+
+Do not group unrelated handlers together.
+
+---
+
+# CQRS Rules
+
+Commands:
+
+Modify data.
+
+Examples:
+
+- CreateWithdrawalRequest
+- GenerateAffiliateLink
+- ApproveWithdrawal
+
+Queries:
+
+Read data only.
+
+Examples:
+
+- GetDashboard
+- GetOrders
+- GetUserProfile
+
+Queries must never modify state.
+
+Commands must not return entities.
+
+---
+
+# Entity Rules
+
+Entities represent business concepts.
+
+Examples:
+
+- User
+- Order
+- AffiliateLink
+- WithdrawRequest
+- CommissionTransaction
+
+Entities should protect their state.
+
+Prefer:
+
+public decimal AvailableBalance
+{
+get;
+private set;
+}
+
+Avoid public setters unless necessary.
+
+---
+
+# DTO Rules
+
+Never expose entities directly.
+
+Always create DTOs.
+
+Allowed:
+
+UserDto
+
+OrderDto
+
+DashboardDto
+
+Forbidden:
+
+return User
+
+return Order
+
+---
+
+# Validation Rules
+
+Use FluentValidation.
+
+Validation belongs in Application Layer.
+
+Never place validation inside Controllers.
+
+---
+
+# Repository Rules
+
+Repositories are for persistence only.
+
+Repositories must NOT contain:
+
+- Business Logic
+- External API Calls
+- Authentication Logic
+
+---
+
+# External Integration Rules
+
+All external integrations must go through Infrastructure Layer.
+
+Examples:
+
+- Accesstrade API
+- Google OAuth
+- Email Providers
+
+Never call external APIs directly from:
+
+- Controllers
+- Handlers
+- Domain Entities
+
+Use abstractions/interfaces.
+
+---
+
+# Folder Structure Rules
+
+Always follow:
+
+docs/folder-structure.md
+
+Do not create arbitrary folders.
+
+Forbidden examples:
+
+Services/
+Helpers/
+Utils/
+Managers/
+
+at root project level.
+
+Everything must belong to a defined layer.
+
+---
+
+# Database Rules
+
+Database schema must follow:
+
+docs/database-design.md
+
+Enums must follow:
+
+docs/enums.md
+
+Do not invent new enum values without updating enums.md.
+
+---
+
+# API Rules
+
+All APIs must follow:
+
+docs/api-specification.md
+
+Use standard response wrapper.
+
+Do not create inconsistent response formats.
+
+---
+
+# Documentation Rules
+
+When introducing:
+
+- New feature
+- New module
+- New entity
+- New API
+
+Check whether documentation must be updated.
+
+Relevant docs include:
+
+- product-requirements.md
+- database-design.md
+- user-flows.md
+- api-specification.md
+
+---
+
+# Testing Rules
+
+Critical business logic should be testable.
+
+Avoid tightly coupling logic to framework code.
+
+Business logic should remain unit-test friendly.
+
+---
+
+# AI Assistant Instructions
+
+Before generating code:
+
+1. Identify target layer.
+2. Verify dependency direction.
+3. Verify folder location.
+4. Check existing patterns.
+5. Reuse existing abstractions.
+
+Always prefer consistency over creativity.
+
+Do not introduce new architectural patterns unless explicitly requested.
+
+---
+
+# Definition Of Success
+
+Generated code is considered correct only if:
+
+✓ Respects Clean Architecture
+
+✓ Respects Vertical Slice Architecture
+
+✓ Respects CQRS
+
+✓ Respects folder structure
+
+✓ Respects dependency direction
+
+✓ Keeps controllers thin
+
+✓ Keeps business logic in Application Layer
+
+✓ Keeps Domain framework independent
+
+Architecture consistency is more important than implementation speed.

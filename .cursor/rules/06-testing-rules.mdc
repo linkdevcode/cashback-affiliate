@@ -1,0 +1,401 @@
+---
+
+description: Testing Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Testing Rules
+
+References:
+
+- docs/coding-standards.md
+- docs/tech-architecture.md
+- docs/user-flows.md
+
+---
+
+# Testing Philosophy
+
+Goal:
+
+Protect business-critical functionality.
+
+Focus on:
+
+- Business logic
+- Financial logic
+- Integrations
+
+Do not chase arbitrary coverage percentages.
+
+---
+
+# Testing Priorities
+
+Priority 1
+
+Financial Logic
+
+Examples:
+
+- Cashback calculation
+- Commission processing
+- Withdrawal validation
+
+Priority 2
+
+Business Logic
+
+Examples:
+
+- Affiliate link generation
+- Order processing
+- Dashboard calculations
+
+Priority 3
+
+Infrastructure
+
+Examples:
+
+- Accesstrade integration
+- Webhook processing
+
+Priority 4
+
+UI
+
+Only critical UI flows.
+
+---
+
+# Test Project Structure
+
+Backend
+
+```text
+backend/tests/
+
+├── Cashback.UnitTests
+└── Cashback.IntegrationTests
+```
+
+---
+
+Unit Tests
+
+```text
+Application/
+Domain/
+Shared/
+```
+
+---
+
+Integration Tests
+
+```text
+Api/
+Database/
+Webhooks/
+```
+
+---
+
+# Unit Test Rules
+
+Unit tests must:
+
+- Be fast
+- Be isolated
+- Avoid external services
+
+Mock:
+
+- Repositories
+- External APIs
+- OAuth Providers
+
+Never call real services in unit tests.
+
+---
+
+# Naming Convention
+
+Pattern:
+
+```text
+MethodName_Scenario_ExpectedResult
+```
+
+Examples:
+
+```text
+CreateWithdrawal_InsufficientBalance_ReturnsFailure
+
+GenerateAffiliateLink_ValidRequest_ReturnsLink
+
+ApproveWithdrawal_ValidRequest_UpdatesBalance
+```
+
+---
+
+# Business Logic Coverage
+
+Must Test
+
+Cashback
+
+- Calculate cashback
+- Commission distribution
+
+Withdrawals
+
+- Balance validation
+- Minimum amount validation
+- Status transitions
+
+Orders
+
+- Creation
+- Approval
+- Cancellation
+
+Webhooks
+
+- Duplicate protection
+- Signature validation
+
+---
+
+# Handler Tests
+
+Every critical command handler should be testable.
+
+Examples:
+
+```text
+GenerateAffiliateLinkHandler
+
+CreateWithdrawalHandler
+
+ApproveWithdrawalHandler
+
+ProcessAccesstradeWebhookHandler
+```
+
+---
+
+# Validation Tests
+
+Validators should be tested.
+
+Examples:
+
+```text
+CreateWithdrawalValidator
+
+GenerateAffiliateLinkValidator
+```
+
+Must verify:
+
+- Required fields
+- Invalid values
+- Boundary conditions
+
+---
+
+# Domain Tests
+
+Domain entities should test:
+
+- State changes
+- Business rules
+- Financial calculations
+
+Examples:
+
+```text
+UserBalanceTests
+
+OrderStatusTests
+
+WithdrawalRulesTests
+```
+
+---
+
+# Integration Test Rules
+
+Integration tests verify:
+
+- API endpoints
+- Database interactions
+- Webhook processing
+
+Use test database.
+
+Never use production database.
+
+---
+
+# API Tests
+
+Critical endpoints must be tested.
+
+Examples:
+
+```text
+POST /affiliate-links
+
+POST /withdrawals
+
+GET /dashboard
+
+POST /webhooks/accesstrade
+```
+
+Verify:
+
+- Status codes
+- Response structure
+- Authorization
+
+---
+
+# Webhook Tests
+
+Must test:
+
+- Valid payload
+- Invalid signature
+- Duplicate event
+- Retry event
+
+Webhook processing must be idempotent.
+
+---
+
+# Database Tests
+
+Verify:
+
+- Migrations
+- Constraints
+- Relationships
+
+Critical financial operations must be validated.
+
+---
+
+# Mocking Rules
+
+Allowed:
+
+- Moq
+- NSubstitute
+
+Prefer:
+
+Moq
+
+---
+
+Mock:
+
+- IOrderRepository
+- IUserRepository
+- IAccesstradeClient
+
+Do not mock:
+
+- Pure business logic
+
+---
+
+# Frontend Testing Rules
+
+Focus on:
+
+- Forms
+- Authentication flows
+- Critical user journeys
+
+Examples:
+
+- Login flow
+- Generate affiliate link
+- Create withdrawal request
+
+---
+
+# What Not To Test
+
+Avoid testing:
+
+- Framework internals
+- EF Core implementation details
+- Simple DTOs
+- Auto-generated code
+
+---
+
+# Financial Safety Tests
+
+Mandatory
+
+Withdrawal
+
+✓ Insufficient balance
+
+✓ Negative amount
+
+✓ Zero amount
+
+✓ Successful request
+
+---
+
+Commission
+
+✓ Approved commission
+
+✓ Rejected commission
+
+✓ Duplicate webhook
+
+---
+
+# Regression Tests
+
+When fixing a bug:
+
+Create a test reproducing the bug first.
+
+Then fix the bug.
+
+---
+
+# Code Generation Checklist
+
+✓ Unit tests created for business logic
+
+✓ Integration tests for critical APIs
+
+✓ Validation tests exist
+
+✓ Financial logic tested
+
+✓ External services mocked
+
+✓ No real external calls
+
+✓ Clear naming convention
+
+✓ Idempotency verified for webhooks

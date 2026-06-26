@@ -1,0 +1,592 @@
+---
+
+description: Authentication Module Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Auth Module Rules
+
+References:
+
+- docs/product-requirements.md
+- docs/database-design.md
+- docs/enums.md
+- docs/user-flows.md
+- docs/api-specification.md
+- docs/tech-architecture.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+- User Authentication
+- User Authorization
+- JWT Management
+- Refresh Token Management
+- Google OAuth Login
+- Current User Context
+
+The Auth module is NOT responsible for:
+
+- User Profile Management
+- Cashback Logic
+- Orders
+- Withdrawals
+- Admin Operations
+
+---
+
+# Authentication Strategy
+
+MVP Authentication Method:
+
+Google OAuth
+
+Flow:
+
+User
+
+↓
+
+Google Login
+
+↓
+
+Backend Verification
+
+↓
+
+Create User If Needed
+
+↓
+
+Generate JWT
+
+↓
+
+Generate Refresh Token
+
+↓
+
+Return Tokens
+
+---
+
+# Supported Login Methods
+
+Allowed:
+
+✓ Google OAuth
+
+Future:
+
+- Apple Login
+- Facebook Login
+
+Not in MVP:
+
+✗ Email Password Login
+
+✗ Phone OTP Login
+
+✗ Username Password Login
+
+---
+
+# User Entity Rules
+
+User is the source of truth.
+
+User must contain:
+
+- Id
+- Email
+- FullName
+- AvatarUrl
+- Role
+- Status
+- LastLoginAt
+- CreatedAt
+- UpdatedAt
+
+---
+
+# User Creation Rules
+
+On first successful Google login:
+
+If user does not exist:
+
+Create user.
+
+Default values:
+
+Role
+
+UserRole.User
+
+Status
+
+UserStatus.Active
+
+---
+
+If user already exists:
+
+Update:
+
+- FullName
+- AvatarUrl
+- LastLoginAt
+
+Do not create duplicate users.
+
+Email must be unique.
+
+---
+
+# Roles
+
+Use enums from:
+
+docs/enums.md
+
+Allowed MVP Roles:
+
+User
+
+Admin
+
+Never hardcode role strings.
+
+Bad:
+
+```csharp
+if(user.Role == "Admin")
+```
+
+Good:
+
+```csharp
+if(user.Role == UserRole.Admin)
+```
+
+---
+
+# User Status Rules
+
+Use enums from:
+
+docs/enums.md
+
+Examples:
+
+- Active
+- Suspended
+- Deleted
+
+Suspended users:
+
+- Cannot login
+- Cannot generate links
+- Cannot request withdrawals
+
+---
+
+# JWT Rules
+
+Authentication method:
+
+JWT Bearer Token
+
+---
+
+JWT Payload Must Contain
+
+UserId
+
+Email
+
+Role
+
+IssuedAt
+
+Expiration
+
+---
+
+Do not include:
+
+- Passwords
+- Secrets
+- Sensitive financial data
+
+---
+
+# JWT Lifetime
+
+Access Token
+
+15 Minutes
+
+Refresh Token
+
+7 Days
+
+Configurable through settings.
+
+Never hardcode values.
+
+---
+
+# Refresh Token Rules
+
+Refresh tokens must:
+
+- Be random
+- Be securely generated
+- Be stored in database
+
+---
+
+Refresh token table:
+
+user_refresh_tokens
+
+Suggested fields:
+
+- id
+- user_id
+- token
+- expires_at
+- revoked_at
+- created_at
+
+---
+
+# Token Rotation
+
+On refresh:
+
+Old token
+
+↓
+
+Revoke
+
+↓
+
+Generate new token
+
+↓
+
+Return new pair
+
+Reuse of revoked token should fail.
+
+---
+
+# Google OAuth Rules
+
+Backend verifies Google identity.
+
+Never trust frontend profile data.
+
+Required:
+
+Verify Google token server-side.
+
+---
+
+Required user information:
+
+- GoogleId
+- Email
+- FullName
+- AvatarUrl
+
+---
+
+Email is primary identity.
+
+---
+
+Auth Endpoints
+
+Required MVP Endpoints
+
+POST
+
+/api/v1/auth/google-login
+
+Purpose
+
+Login using Google token.
+
+---
+
+POST
+
+/api/v1/auth/refresh-token
+
+Purpose
+
+Refresh JWT.
+
+---
+
+POST
+
+/api/v1/auth/logout
+
+Purpose
+
+Revoke refresh token.
+
+---
+
+GET
+
+/api/v1/auth/me
+
+Purpose
+
+Current user profile.
+
+---
+
+# Auth Commands
+
+Examples
+
+GoogleLoginCommand
+
+RefreshTokenCommand
+
+LogoutCommand
+
+---
+
+# Auth Queries
+
+Examples
+
+GetCurrentUserQuery
+
+---
+
+# Authorization Rules
+
+Protected endpoints require:
+
+```csharp
+[Authorize]
+```
+
+Admin endpoints require:
+
+```csharp
+[Authorize(Roles = nameof(UserRole.Admin))]
+```
+
+---
+
+Never trust:
+
+- Request body role
+- Query string role
+- Frontend role
+
+Always validate from JWT.
+
+---
+
+# Current User Access
+
+Use abstraction.
+
+Example:
+
+ICurrentUserService
+
+Responsibilities:
+
+- UserId
+- Email
+- Role
+
+Avoid direct HttpContext access inside handlers.
+
+Bad:
+
+```csharp
+_httpContextAccessor.HttpContext.User
+```
+
+inside application handlers.
+
+---
+
+# Security Rules
+
+Never expose:
+
+- Refresh Tokens
+- Internal Claims
+- Secrets
+
+---
+
+Never log:
+
+- JWT Tokens
+- Refresh Tokens
+- OAuth Tokens
+
+---
+
+All auth endpoints must support:
+
+Rate Limiting
+
+Examples:
+
+Google Login
+
+Refresh Token
+
+---
+
+# Frontend Rules
+
+Frontend responsibilities:
+
+- Google Sign-In
+- Store JWT securely
+- Store Refresh Token securely
+- Redirect authenticated users
+
+---
+
+Frontend must not:
+
+- Verify Google identity
+- Make authorization decisions
+- Calculate permissions
+
+Backend remains source of truth.
+
+---
+
+# Protected Routes
+
+Protected pages:
+
+Dashboard
+
+Orders
+
+Withdrawals
+
+Affiliate Links
+
+Admin
+
+---
+
+Unauthenticated users:
+
+Redirect to Login.
+
+---
+
+# Logout Rules
+
+Logout must:
+
+- Revoke refresh token
+- Remove local tokens
+- Clear cached user data
+
+---
+
+# Testing Requirements
+
+Must Test
+
+Google Login
+
+✓ New User
+
+✓ Existing User
+
+✓ Invalid Token
+
+---
+
+Refresh Token
+
+✓ Valid Token
+
+✓ Expired Token
+
+✓ Revoked Token
+
+✓ Token Rotation
+
+---
+
+Authorization
+
+✓ User Access
+
+✓ Admin Access
+
+✓ Unauthorized Access
+
+---
+
+# Documentation Rules
+
+If auth flow changes:
+
+Update:
+
+- user-flows.md
+- api-specification.md
+- database-design.md
+
+---
+
+# Code Generation Checklist
+
+✓ Google OAuth only
+
+✓ JWT used
+
+✓ Refresh Token used
+
+✓ User created automatically
+
+✓ Email unique
+
+✓ Roles from enums
+
+✓ Authorization attributes applied
+
+✓ Current user abstraction used
+
+✓ Refresh token rotation implemented
+
+✓ Security rules followed
+
+✓ Tests included
+
+Auth consistency is more important than implementation convenience.

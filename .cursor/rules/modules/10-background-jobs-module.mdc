@@ -1,0 +1,473 @@
+---
+
+description: Background Jobs Module Rules
+globs:
+- backend/**/*.cs
+alwaysApply: true
+
+---
+
+# Background Jobs Module Rules
+
+References:
+
+- docs/tech-architecture.md
+- docs/product-requirements.md
+- docs/api-specification.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+- Async Processing
+- Scheduled Jobs
+- Retry Mechanisms
+- Data Synchronization
+- Maintenance Tasks
+
+Background Jobs improve reliability and scalability.
+
+---
+
+# Core Principle
+
+Long-running tasks must not execute inside HTTP requests.
+
+---
+
+Bad
+
+Request
+
+↓
+
+Webhook
+
+↓
+
+Sync Orders
+
+↓
+
+Recalculate Dashboard
+
+↓
+
+Send Notifications
+
+↓
+
+Return Response
+
+---
+
+Good
+
+Request
+
+↓
+
+Queue Job
+
+↓
+
+Return Response
+
+↓
+
+Background Worker
+
+↓
+
+Process Task
+
+---
+
+# Job Categories
+
+Supported
+
+Webhook Processing
+
+Retry Processing
+
+Notification Delivery
+
+Data Synchronization
+
+Cleanup Tasks
+
+Reporting Tasks
+
+---
+
+# Recommended Framework
+
+MVP
+
+Hangfire
+
+Preferred
+
+```text id="v2pz4g"
+Hangfire
+```
+
+---
+
+Future
+
+- Quartz
+- Azure Functions
+- AWS EventBridge
+
+---
+
+# Job Naming Rules
+
+Pattern
+
+```text id="1f7ev7"
+<Action><Entity>Job
+```
+
+Examples
+
+ProcessWebhookJob
+
+RetryWebhookJob
+
+SyncOrdersJob
+
+SendNotificationJob
+
+CleanupOldLogsJob
+
+---
+
+# Job Design Rules
+
+Jobs must be:
+
+- Idempotent
+- Retryable
+- Observable
+
+---
+
+Jobs must not:
+
+- Depend on HTTP Context
+- Depend on UI State
+
+---
+
+# Idempotency Rules
+
+Critical Requirement
+
+Jobs may execute multiple times.
+
+Same job must not:
+
+- Duplicate cashback
+- Duplicate notifications
+- Duplicate balance updates
+
+---
+
+# Retry Rules
+
+Transient failures should retry.
+
+Examples
+
+Provider API Failure
+
+Database Timeout
+
+Network Error
+
+---
+
+Retries must use exponential backoff.
+
+---
+
+# Webhook Jobs
+
+Recommended Flow
+
+Webhook Received
+
+↓
+
+Store Event
+
+↓
+
+Queue Job
+
+↓
+
+ProcessWebhookJob
+
+↓
+
+Orders Module
+
+---
+
+Webhook controller should remain lightweight.
+
+---
+
+# Notification Jobs
+
+Future Flow
+
+Create Notification
+
+↓
+
+Queue Delivery Job
+
+↓
+
+Send Email
+
+↓
+
+Mark Delivered
+
+---
+
+Notification failures must not affect business logic.
+
+---
+
+# Synchronization Jobs
+
+Examples
+
+SyncAccesstradeOrdersJob
+
+---
+
+Purpose
+
+Verify:
+
+- Missing Orders
+- Status Updates
+- Commission Updates
+
+---
+
+Synchronization should be read-safe.
+
+---
+
+# Cleanup Jobs
+
+Examples
+
+CleanupAuditLogsJob
+
+CleanupExpiredTokensJob
+
+CleanupWebhookEventsJob
+
+---
+
+Never delete critical financial data.
+
+---
+
+# Scheduling Rules
+
+Recurring Jobs
+
+Examples
+
+Every 5 Minutes
+
+Retry Failed Webhooks
+
+---
+
+Hourly
+
+Sync Orders
+
+---
+
+Daily
+
+Cleanup Tasks
+
+---
+
+Schedule values should be configurable.
+
+---
+
+# Monitoring Rules
+
+Track
+
+- Job Success Rate
+- Job Failure Rate
+- Retry Count
+- Execution Time
+
+---
+
+Admin Dashboard should expose:
+
+Job Health Metrics
+
+---
+
+# Error Handling Rules
+
+Every job failure must be logged.
+
+Store
+
+- Job Name
+- Error Message
+- Occurred At
+
+---
+
+Never silently swallow exceptions.
+
+---
+
+# Logging Rules
+
+Log
+
+✓ Job Started
+
+✓ Job Completed
+
+✓ Job Failed
+
+✓ Job Retried
+
+---
+
+Never log:
+
+✗ Secrets
+
+✗ Tokens
+
+---
+
+# Queue Rules
+
+MVP
+
+Single Queue
+
+```text id="myb9bp"
+default
+```
+
+---
+
+Future
+
+critical
+
+notifications
+
+sync
+
+maintenance
+
+---
+
+# Required Jobs
+
+ProcessWebhookJob
+
+RetryWebhookJob
+
+SyncOrdersJob
+
+CleanupExpiredTokensJob
+
+---
+
+# Security Rules
+
+Jobs must use:
+
+Application Services
+
+Repositories
+
+Commands
+
+---
+
+Jobs must never bypass:
+
+Authorization Rules
+
+Business Rules
+
+Financial Rules
+
+---
+
+# Testing Requirements
+
+✓ Successful Job Execution
+
+✓ Retry Logic
+
+✓ Idempotency
+
+✓ Failure Recovery
+
+✓ Scheduling
+
+✓ Logging
+
+---
+
+# Documentation Rules
+
+If jobs change:
+
+Update:
+
+- tech-architecture.md
+- deployment-guide.md
+
+---
+
+# Code Generation Checklist
+
+✓ Hangfire used
+
+✓ Jobs idempotent
+
+✓ Retries implemented
+
+✓ Logging enabled
+
+✓ Monitoring supported
+
+✓ Long-running work moved off HTTP requests
+
+✓ Scheduling configurable
+
+Background processing is a reliability feature, not a business feature.

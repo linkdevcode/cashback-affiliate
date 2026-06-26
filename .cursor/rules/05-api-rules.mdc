@@ -1,0 +1,405 @@
+---
+
+description: API Design Rules
+globs:
+- backend/**/*.cs
+alwaysApply: true
+
+---
+
+# API Rules
+
+References:
+
+- docs/api-specification.md
+- docs/coding-standards.md
+- docs/user-flows.md
+
+---
+
+# API Design Principles
+
+All APIs must be:
+
+- Consistent
+- Predictable
+- RESTful
+- Versioned
+
+Never create custom patterns when a REST pattern already exists.
+
+---
+
+# API Versioning
+
+All endpoints must use versioning.
+
+Pattern:
+
+```text
+/api/v1/
+```
+
+Examples:
+
+```text
+/api/v1/auth/google-login
+/api/v1/dashboard
+/api/v1/orders
+/api/v1/withdrawals
+```
+
+---
+
+# REST Conventions
+
+Create Resource
+
+```http
+POST /api/v1/orders
+```
+
+Get Resource
+
+```http
+GET /api/v1/orders/{id}
+```
+
+List Resources
+
+```http
+GET /api/v1/orders
+```
+
+Update Resource
+
+```http
+PUT /api/v1/orders/{id}
+```
+
+Delete Resource
+
+```http
+DELETE /api/v1/orders/{id}
+```
+
+---
+
+Forbidden
+
+```http
+POST /GetOrders
+POST /DeleteOrder
+POST /CreateWithdrawal
+```
+
+---
+
+# Controller Naming
+
+Controllers must end with:
+
+```text
+Controller
+```
+
+Examples:
+
+```text
+AuthController
+OrdersController
+WithdrawalsController
+```
+
+---
+
+# Route Naming
+
+Use lowercase.
+
+Use kebab-case if needed.
+
+Good:
+
+```text
+/api/v1/affiliate-links
+/api/v1/withdrawals
+```
+
+Bad:
+
+```text
+/api/v1/AffiliateLinks
+/api/v1/GetWithdrawals
+```
+
+---
+
+# Request Models
+
+Every endpoint requiring input must have a Request DTO.
+
+Example:
+
+```csharp
+GenerateAffiliateLinkRequest
+CreateWithdrawalRequest
+```
+
+Never accept Entity objects directly.
+
+---
+
+# Response Models
+
+Every endpoint must return Response DTOs.
+
+Examples:
+
+```csharp
+DashboardResponse
+OrderResponse
+WithdrawalResponse
+```
+
+Never return Entity objects.
+
+---
+
+# Standard Response Wrapper
+
+All APIs must use a standard response structure.
+
+Success:
+
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+
+Failure:
+
+```json
+{
+  "success": false,
+  "message": "Validation failed"
+}
+```
+
+---
+
+# HTTP Status Codes
+
+Success
+
+```http
+200 OK
+201 Created
+204 No Content
+```
+
+Client Errors
+
+```http
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict
+```
+
+Server Errors
+
+```http
+500 Internal Server Error
+```
+
+---
+
+# Validation Rules
+
+Input validation must use FluentValidation.
+
+Invalid requests return:
+
+```http
+400 Bad Request
+```
+
+Validation errors must be user-friendly.
+
+---
+
+# Authentication Rules
+
+Protected endpoints require:
+
+```csharp
+[Authorize]
+```
+
+Admin endpoints require:
+
+```csharp
+[Authorize(Roles = "Admin")]
+```
+
+Never trust client role information.
+
+---
+
+# Pagination Rules
+
+List endpoints must support pagination.
+
+Parameters:
+
+```http
+?page=1&pageSize=20
+```
+
+Response:
+
+```json
+{
+  "items": [],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 100,
+  "totalPages": 5
+}
+```
+
+---
+
+# Filtering Rules
+
+Filtering should use query parameters.
+
+Example:
+
+```http
+GET /api/v1/orders?status=approved
+```
+
+Avoid custom filter endpoints.
+
+---
+
+# Sorting Rules
+
+Sorting should use query parameters.
+
+Example:
+
+```http
+GET /api/v1/orders?sortBy=createdAt&direction=desc
+```
+
+---
+
+# Security Rules
+
+Never expose:
+
+- Internal IDs not meant for clients
+- Database schema details
+- Stack traces
+- Exception details
+
+---
+
+# Idempotency Rules
+
+Critical financial endpoints should support idempotency where applicable.
+
+Examples:
+
+- Withdrawal processing
+- Webhook processing
+
+Prevent duplicate execution.
+
+---
+
+# Webhook Rules
+
+Webhook endpoints:
+
+- Must validate signatures
+- Must validate source
+- Must be idempotent
+
+Examples:
+
+```text
+/api/v1/webhooks/accesstrade
+```
+
+---
+
+# Health Check Endpoint
+
+Required:
+
+```http
+GET /api/v1/health
+```
+
+Response:
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+# Swagger Rules
+
+Swagger enabled:
+
+- Development
+- Staging
+
+Swagger disabled:
+
+- Production
+
+---
+
+# API Documentation Rules
+
+Whenever an endpoint is added:
+
+Verify if updates are required in:
+
+- api-specification.md
+- user-flows.md
+
+---
+
+# Code Generation Checklist
+
+✓ RESTful
+
+✓ Versioned
+
+✓ DTOs used
+
+✓ Response wrapper used
+
+✓ Status codes correct
+
+✓ Validation exists
+
+✓ Authentication applied
+
+✓ Pagination supported
+
+✓ No entities exposed
+
+✓ API spec remains consistent

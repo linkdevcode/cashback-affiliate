@@ -1,0 +1,305 @@
+---
+
+description: Documentation Rules
+alwaysApply: true
+-----------------
+
+# Documentation Rules
+
+References:
+
+- docs/product-requirements.md
+- docs/database-design.md
+- docs/enums.md
+- docs/user-flows.md
+- docs/api-specification.md
+- docs/tech-architecture.md
+- docs/coding-standards.md
+- docs/folder-structure.md
+- docs/development-roadmap.md
+- docs/deployment-guide.md
+
+---
+
+# Documentation Philosophy
+
+Documentation is part of the product.
+
+Code and documentation must remain synchronized.
+
+Outdated documentation is considered a defect.
+
+---
+
+# Source Of Truth
+
+The following documents are authoritative:
+
+Product Requirements
+
+```text
+docs/product-requirements.md
+```
+
+Database
+
+```text
+docs/database-design.md
+```
+
+Enums
+
+```text
+docs/enums.md
+```
+
+API
+
+```text
+docs/api-specification.md
+```
+
+Architecture
+
+```text
+docs/tech-architecture.md
+```
+
+---
+
+# Documentation First Rule
+
+Before implementing:
+
+- New Feature
+- New Entity
+- New Module
+- New API
+- New Database Table
+
+Verify whether documentation must be updated.
+
+---
+
+# Product Requirements Rules
+
+Update:
+
+```text
+docs/product-requirements.md
+```
+
+When:
+
+- New business feature added
+- Existing feature behavior changes
+- User flow changes
+
+---
+
+# Database Documentation Rules
+
+Update:
+
+```text
+docs/database-design.md
+```
+
+When:
+
+- New table added
+- New column added
+- Relationship changes
+- Constraints change
+
+Never modify database schema without updating documentation.
+
+---
+
+# Enum Documentation Rules
+
+Update:
+
+```text
+docs/enums.md
+```
+
+When:
+
+- New enum added
+- Enum values change
+- Enum descriptions change
+
+Never introduce undocumented enum values.
+
+---
+
+# API Documentation Rules
+
+Update:
+
+```text
+docs/api-specification.md
+```
+
+When:
+
+- New endpoint added
+- Endpoint removed
+- Request changes
+- Response changes
+
+API documentation must remain current.
+
+---
+
+# User Flow Documentation Rules
+
+Update:
+
+```text
+docs/user-flows.md
+```
+
+When:
+
+- User journey changes
+- Screen flow changes
+- Business process changes
+
+---
+
+# Architecture Documentation Rules
+
+Update:
+
+```text
+docs/tech-architecture.md
+```
+
+When:
+
+- New architectural pattern introduced
+- New layer introduced
+- Deployment architecture changes
+
+---
+
+# Roadmap Documentation Rules
+
+Update:
+
+```text
+docs/development-roadmap.md
+```
+
+When:
+
+- Sprint scope changes
+- Feature priority changes
+- MVP scope changes
+
+---
+
+# Deployment Documentation Rules
+
+Update:
+
+```text
+docs/deployment-guide.md
+```
+
+When:
+
+- Infrastructure changes
+- Environment variables change
+- Deployment process changes
+
+---
+
+# Documentation Quality Rules
+
+Documentation must be:
+
+- Clear
+- Concise
+- Actionable
+- Up-to-date
+
+Avoid:
+
+- Ambiguous descriptions
+- Duplicate content
+- Outdated screenshots
+
+---
+
+# Markdown Standards
+
+Use:
+
+```markdown
+# Heading 1
+
+## Heading 2
+
+### Heading 3
+```
+
+Prefer lists over large paragraphs.
+
+---
+
+# Example Documentation Trigger
+
+If a new entity is created:
+
+Example:
+
+```text
+Referral
+```
+
+Required updates:
+
+✓ database-design.md
+
+✓ enums.md
+
+✓ product-requirements.md
+
+✓ api-specification.md
+
+✓ user-flows.md
+
+---
+
+# AI Assistant Responsibilities
+
+Before completing a feature:
+
+Check whether any documentation updates are required.
+
+If required:
+
+List affected documentation files.
+
+---
+
+# Code Generation Checklist
+
+✓ Documentation reviewed
+
+✓ Documentation updated if necessary
+
+✓ API docs synchronized
+
+✓ Database docs synchronized
+
+✓ Enums documented
+
+✓ User flows synchronized
+
+✓ Roadmap updated if scope changes
+
+Documentation consistency is mandatory.

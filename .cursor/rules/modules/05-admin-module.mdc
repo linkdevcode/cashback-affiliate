@@ -1,0 +1,727 @@
+---
+
+description: Admin Module Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Admin Module Rules
+
+References:
+
+- docs/product-requirements.md
+- docs/database-design.md
+- docs/enums.md
+- docs/user-flows.md
+- docs/api-specification.md
+- docs/tech-architecture.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+- Admin Dashboard
+- User Management
+- Order Monitoring
+- Withdrawal Management
+- System Configuration
+- Audit Logs
+- Business Monitoring
+
+Admin Module is the operational control center of the platform.
+
+---
+
+# MVP Scope
+
+Admin can:
+
+✓ View Users
+
+✓ View Orders
+
+✓ View Withdrawals
+
+✓ Approve Withdrawals
+
+✓ Reject Withdrawals
+
+✓ Complete Withdrawals
+
+✓ View Dashboard Statistics
+
+✓ View Audit Logs
+
+---
+
+Admin cannot:
+
+✗ Modify commissions manually
+
+✗ Modify order ownership
+
+✗ Delete financial records
+
+✗ Delete audit logs
+
+---
+
+# Authorization Rules
+
+All Admin endpoints require:
+
+```csharp
+[Authorize(Roles = nameof(UserRole.Admin))]
+```
+
+Never trust:
+
+- Frontend role
+- Request body role
+- Query string role
+
+Always validate from JWT.
+
+---
+
+# Admin Dashboard
+
+Purpose:
+
+Provide operational overview.
+
+---
+
+Dashboard Metrics
+
+Users
+
+- Total Users
+- New Users Today
+- Active Users
+
+Orders
+
+- Total Orders
+- Pending Orders
+- Approved Orders
+- Rejected Orders
+
+Cashback
+
+- Total Cashback Paid
+- Pending Cashback
+
+Withdrawals
+
+- Pending Withdrawals
+- Completed Withdrawals
+- Total Withdrawn
+
+System
+
+- Total Affiliate Links Generated
+
+---
+
+Dashboard data must come from database queries.
+
+Never calculate metrics in frontend.
+
+---
+
+# User Management Rules
+
+Admin may:
+
+- View User Details
+- Search Users
+- Filter Users
+- Suspend Users
+- Reactivate Users
+
+---
+
+Admin may NOT:
+
+- Delete Users
+- Modify Balances Directly
+- Change User Ownership
+
+---
+
+# User Status Rules
+
+Allowed Actions
+
+Active
+
+↓
+
+Suspended
+
+↓
+
+Active
+
+---
+
+Deleted status should not be used in MVP.
+
+---
+
+Suspended users:
+
+Cannot Login
+
+Cannot Generate Links
+
+Cannot Create Withdrawals
+
+---
+
+# User Search Rules
+
+Support:
+
+- Email
+- UserId
+- Name
+
+---
+
+Always paginate results.
+
+Never load all users.
+
+---
+
+# Orders Management Rules
+
+Admin may:
+
+- View Orders
+- Filter Orders
+- Search Orders
+
+---
+
+Admin may NOT:
+
+- Create Orders
+- Delete Orders
+- Change Order Ownership
+
+---
+
+Admin may NOT manually approve commissions.
+
+Commission source remains provider data.
+
+---
+
+# Withdrawal Management Rules
+
+Admin may:
+
+- View Requests
+- Approve Requests
+- Reject Requests
+- Complete Requests
+
+---
+
+All actions must create audit logs.
+
+---
+
+Approval flow
+
+Pending
+
+↓
+
+Approved
+
+↓
+
+Completed
+
+---
+
+Rejection flow
+
+Pending
+
+↓
+
+Rejected
+
+---
+
+Status transitions must follow withdrawal rules.
+
+---
+
+# System Settings Rules
+
+System settings must be configurable.
+
+Examples:
+
+Cashback Percentage
+
+Minimum Withdrawal
+
+Maximum Withdrawal
+
+Campaign Id
+
+Provider Settings
+
+---
+
+Do NOT hardcode business configuration.
+
+---
+
+Suggested Entity
+
+SystemSetting
+
+Fields:
+
+- Key
+- Value
+- Description
+- UpdatedAt
+
+---
+
+# Audit Log Rules
+
+Critical Requirement
+
+Every admin action must be auditable.
+
+---
+
+Suggested Entity
+
+AuditLog
+
+Fields:
+
+- Id
+- UserId
+- Action
+- EntityType
+- EntityId
+- OldValue
+- NewValue
+- CreatedAt
+
+---
+
+Examples
+
+Withdrawal Approved
+
+Withdrawal Rejected
+
+User Suspended
+
+System Setting Changed
+
+---
+
+Audit logs must be append-only.
+
+Never update logs.
+
+Never delete logs.
+
+---
+
+# Financial Safety Rules
+
+Admin actions affecting money must be logged.
+
+Examples
+
+Withdrawal Approval
+
+Withdrawal Rejection
+
+Withdrawal Completion
+
+Balance Adjustment
+
+---
+
+Audit trail is mandatory.
+
+---
+
+# Manual Balance Adjustment Rules
+
+Not supported in MVP.
+
+---
+
+Future implementation:
+
+BalanceAdjustmentRequest
+
+with approval workflow.
+
+---
+
+Never directly update user balance from admin screens.
+
+---
+
+# Reporting Rules
+
+Admin reports are read-only.
+
+Examples
+
+Revenue Reports
+
+Cashback Reports
+
+Withdrawal Reports
+
+---
+
+Reports must not modify data.
+
+---
+
+# Search & Filtering Rules
+
+Users
+
+- Email
+- Status
+- Created Date
+
+Orders
+
+- Status
+- Date Range
+
+Withdrawals
+
+- Status
+- Date Range
+
+---
+
+Always use server-side filtering.
+
+---
+
+# Frontend Rules
+
+Admin Area
+
+Separate from user area.
+
+Suggested routes:
+
+```text
+/admin
+/admin/users
+/admin/orders
+/admin/withdrawals
+/admin/settings
+/admin/audit-logs
+```
+
+---
+
+Admin pages must:
+
+- Require Admin Role
+- Redirect unauthorized users
+
+---
+
+Frontend must not:
+
+- Decide permissions
+- Hide-only security controls
+
+Backend remains source of truth.
+
+---
+
+# Required Endpoints
+
+Dashboard
+
+GET
+
+/api/v1/admin/dashboard
+
+---
+
+Users
+
+GET
+
+/api/v1/admin/users
+
+GET
+
+/api/v1/admin/users/{id}
+
+POST
+
+/api/v1/admin/users/{id}/suspend
+
+POST
+
+/api/v1/admin/users/{id}/activate
+
+---
+
+Orders
+
+GET
+
+/api/v1/admin/orders
+
+GET
+
+/api/v1/admin/orders/{id}
+
+---
+
+Withdrawals
+
+GET
+
+/api/v1/admin/withdrawals
+
+POST
+
+/api/v1/admin/withdrawals/{id}/approve
+
+POST
+
+/api/v1/admin/withdrawals/{id}/reject
+
+POST
+
+/api/v1/admin/withdrawals/{id}/complete
+
+---
+
+Settings
+
+GET
+
+/api/v1/admin/settings
+
+PUT
+
+/api/v1/admin/settings
+
+---
+
+Audit Logs
+
+GET
+
+/api/v1/admin/audit-logs
+
+---
+
+# Required Queries
+
+GetAdminDashboardQuery
+
+GetUsersQuery
+
+GetUserDetailQuery
+
+GetOrdersQuery
+
+GetWithdrawalsQuery
+
+GetSettingsQuery
+
+GetAuditLogsQuery
+
+---
+
+# Required Commands
+
+SuspendUserCommand
+
+ActivateUserCommand
+
+ApproveWithdrawalCommand
+
+RejectWithdrawalCommand
+
+CompleteWithdrawalCommand
+
+UpdateSystemSettingsCommand
+
+---
+
+# Logging Rules
+
+Log:
+
+✓ Admin Login
+
+✓ User Suspension
+
+✓ User Activation
+
+✓ Withdrawal Approval
+
+✓ Withdrawal Rejection
+
+✓ Withdrawal Completion
+
+✓ Settings Changes
+
+---
+
+Never log:
+
+✗ JWT Tokens
+
+✗ Refresh Tokens
+
+✗ Secrets
+
+✗ Full Bank Account Numbers
+
+---
+
+# Performance Rules
+
+Create indexes:
+
+- user_status
+- order_status
+- withdrawal_status
+- audit_created_at
+
+---
+
+All admin lists must:
+
+✓ Paginate
+
+✓ Filter
+
+✓ Sort
+
+---
+
+Never return entire datasets.
+
+---
+
+# Testing Requirements
+
+Authorization
+
+✓ Admin Access
+
+✓ User Access Denied
+
+---
+
+Users
+
+✓ Suspend User
+
+✓ Activate User
+
+---
+
+Withdrawals
+
+✓ Approve
+
+✓ Reject
+
+✓ Complete
+
+---
+
+Settings
+
+✓ Update Settings
+
+✓ Validation
+
+---
+
+Audit Logs
+
+✓ Log Created
+
+✓ Immutable Records
+
+---
+
+Security
+
+✓ Unauthorized Requests Blocked
+
+✓ Role Validation Works
+
+---
+
+# Documentation Rules
+
+If admin functionality changes:
+
+Update:
+
+- product-requirements.md
+- api-specification.md
+- user-flows.md
+- database-design.md
+
+---
+
+# Code Generation Checklist
+
+✓ Admin Role Required
+
+✓ Dashboard Metrics Implemented
+
+✓ User Suspension Supported
+
+✓ Withdrawal Management Supported
+
+✓ System Settings Configurable
+
+✓ Audit Logs Enabled
+
+✓ Financial Actions Audited
+
+✓ Pagination Implemented
+
+✓ Server-side Filtering Used
+
+✓ No Direct Balance Modification
+
+Operational visibility is important, but auditability is mandatory.

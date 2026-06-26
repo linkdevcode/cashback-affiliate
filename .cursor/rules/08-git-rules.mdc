@@ -1,0 +1,413 @@
+---
+
+description: Git Workflow Rules
+alwaysApply: true
+-----------------
+
+# Git Rules
+
+References:
+
+- docs/coding-standards.md
+- docs/development-roadmap.md
+
+---
+
+# Git Philosophy
+
+Commits should be:
+
+- Small
+- Focused
+- Reversible
+- Understandable
+
+One commit should represent one logical change.
+
+---
+
+# Branch Strategy
+
+Main Branch
+
+```text
+main
+```
+
+Production-ready code only.
+
+---
+
+Development Branch
+
+Optional:
+
+```text
+develop
+```
+
+Used for integration if needed.
+
+---
+
+Feature Branches
+
+Pattern:
+
+```text
+feature/<feature-name>
+```
+
+Examples:
+
+```text
+feature/google-auth
+feature/affiliate-links
+feature/withdrawals
+```
+
+---
+
+Bug Fix Branches
+
+Pattern:
+
+```text
+bugfix/<issue-name>
+```
+
+Examples:
+
+```text
+bugfix/webhook-duplicate-processing
+bugfix/order-status-update
+```
+
+---
+
+Hotfix Branches
+
+Pattern:
+
+```text
+hotfix/<issue-name>
+```
+
+Examples:
+
+```text
+hotfix/login-production-error
+```
+
+---
+
+# Commit Message Convention
+
+Use Conventional Commits.
+
+---
+
+Feature
+
+```text
+feat:
+```
+
+Example
+
+```text
+feat: add affiliate link generation
+```
+
+---
+
+Fix
+
+```text
+fix:
+```
+
+Example
+
+```text
+fix: prevent duplicate webhook processing
+```
+
+---
+
+Refactor
+
+```text
+refactor:
+```
+
+Example
+
+```text
+refactor: simplify withdrawal validation
+```
+
+---
+
+Documentation
+
+```text
+docs:
+```
+
+Example
+
+```text
+docs: update api specification
+```
+
+---
+
+Testing
+
+```text
+test:
+```
+
+Example
+
+```text
+test: add webhook integration tests
+```
+
+---
+
+Chore
+
+```text
+chore:
+```
+
+Example
+
+```text
+chore: update dependencies
+```
+
+---
+
+# Commit Size Rules
+
+Preferred:
+
+50 - 300 lines changed
+
+Avoid:
+
+Huge commits containing multiple unrelated features.
+
+---
+
+# Pull Request Rules
+
+Each PR should:
+
+- Solve one problem
+- Have clear description
+- Reference related documentation
+
+---
+
+PR Checklist
+
+✓ Builds successfully
+
+✓ Tests pass
+
+✓ Documentation updated
+
+✓ No secrets committed
+
+---
+
+# Documentation Before Merge
+
+If feature changes:
+
+- API
+- Database
+- User Flow
+- Architecture
+
+Verify documentation is updated before merge.
+
+---
+
+# Secret Management Rules
+
+Never commit:
+
+```text
+.env
+.env.local
+.env.production
+```
+
+Never commit:
+
+- JWT Secrets
+- API Tokens
+- OAuth Secrets
+- Database Passwords
+
+---
+
+# Ignore Rules
+
+Verify .gitignore includes:
+
+```text
+bin/
+obj/
+node_modules/
+dist/
+.vscode/
+.env*
+```
+
+---
+
+# Migration Rules
+
+Database migrations must be committed.
+
+Required:
+
+✓ Migration File
+
+✓ Snapshot File
+
+Never commit partial migrations.
+
+---
+
+# Rebase Rules
+
+Keep commit history clean.
+
+Prefer:
+
+```bash
+git rebase
+```
+
+before merging long-lived branches.
+
+---
+
+# Release Tagging
+
+Format:
+
+```text
+v1.0.0
+v1.1.0
+v1.2.0
+```
+
+Semantic Versioning
+
+Major
+
+```text
+1.x.x
+```
+
+Breaking changes
+
+Minor
+
+```text
+x.1.x
+```
+
+New features
+
+Patch
+
+```text
+x.x.1
+```
+
+Bug fixes
+
+---
+
+# MVP Milestones
+
+Recommended tags:
+
+```text
+v0.1.0
+```
+
+Auth Complete
+
+```text
+v0.2.0
+```
+
+Affiliate Link Generation Complete
+
+```text
+v0.3.0
+```
+
+Orders + Dashboard Complete
+
+```text
+v0.4.0
+```
+
+Withdrawals Complete
+
+```text
+v1.0.0
+```
+
+Production Launch
+
+---
+
+# AI Assistant Responsibilities
+
+When generating code:
+
+Prefer logical commit boundaries.
+
+Examples:
+
+Good:
+
+```text
+feat: add withdrawal request endpoint
+```
+
+Bad:
+
+```text
+update project
+```
+
+---
+
+# Code Generation Checklist
+
+✓ Conventional commit naming
+
+✓ No secrets committed
+
+✓ Documentation updated
+
+✓ Migration files included
+
+✓ Feature branch naming respected
+
+✓ Clean commit history
+
+Git history is part of the project's documentation.

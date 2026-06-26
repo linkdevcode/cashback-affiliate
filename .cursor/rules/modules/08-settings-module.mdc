@@ -1,0 +1,377 @@
+---
+
+description: Settings Module Rules
+globs:
+* backend/**/*.cs
+* frontend/**/*.ts
+* frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Settings Module Rules
+
+References:
+
+* docs/product-requirements.md
+* docs/database-design.md
+* docs/enums.md
+* docs/tech-architecture.md
+
+---
+
+# Module Purpose
+
+Responsibilities:
+
+* Business Configuration
+* System Configuration
+* Provider Configuration
+* Feature Toggles
+
+Settings allow business behavior changes without code changes.
+
+---
+
+# Core Principle
+
+Business values must come from Settings.
+
+Never hardcode configurable values.
+
+---
+
+# Examples Of Configurable Values
+
+Cashback Percentage
+
+Minimum Withdrawal
+
+Maximum Withdrawal
+
+Shopee Campaign Id
+
+Accesstrade Provider Settings
+
+Feature Flags
+
+---
+
+# Settings Storage
+
+Suggested Entity:
+
+SystemSetting
+
+Fields:
+
+* Id
+* Key
+* Value
+* Description
+* Category
+* UpdatedAt
+* UpdatedBy
+
+---
+
+# Source Of Truth
+
+SystemSetting table is the source of truth.
+
+Do not store business configuration in code.
+
+---
+
+# Settings Categories
+
+General
+
+Affiliate
+
+Withdrawals
+
+Provider
+
+Security
+
+FeatureFlags
+
+---
+
+# Cashback Settings
+
+Examples
+
+```text
+CashbackPercentage
+```
+
+Example Value
+
+```text
+80
+```
+
+Meaning:
+
+User receives 80% commission.
+
+Platform keeps 20%.
+
+---
+
+Must be configurable.
+
+---
+
+# Withdrawal Settings
+
+Examples
+
+```text
+MinimumWithdrawalAmount
+MaximumWithdrawalAmount
+```
+
+---
+
+Values should be validated.
+
+---
+
+# Provider Settings
+
+Examples
+
+```text
+AccesstradeCampaignId
+AccesstradeApiUrl
+AccesstradeWebhookSecret
+```
+
+---
+
+Secrets should not be exposed to frontend.
+
+---
+
+# Feature Flags
+
+Examples
+
+```text
+EnableWithdrawals
+EnableReferralProgram
+EnableNotifications
+```
+
+---
+
+Purpose:
+
+Enable or disable features without deployment.
+
+---
+
+# Access Rules
+
+Users
+
+Read only selected public settings.
+
+---
+
+Admins
+
+Can view and modify settings.
+
+---
+
+Only Admin can update settings.
+
+---
+
+# Validation Rules
+
+Before saving:
+
+Validate:
+
+* Data Type
+* Range
+* Required Values
+
+---
+
+Examples
+
+Cashback Percentage
+
+Allowed:
+
+0 - 100
+
+---
+
+Minimum Withdrawal
+
+Must be:
+
+> 0
+
+---
+
+Maximum Withdrawal
+
+Must be:
+
+> = Minimum Withdrawal
+
+---
+
+# Caching Rules
+
+MVP
+
+No caching required.
+
+---
+
+Future
+
+Settings cache allowed.
+
+Cache invalidation required after updates.
+
+---
+
+# Audit Rules
+
+Every settings update must create audit log.
+
+Store:
+
+* Old Value
+* New Value
+* Updated By
+* Updated At
+
+---
+
+Settings changes must be traceable.
+
+---
+
+# Security Rules
+
+Never expose:
+
+* API Secrets
+* Webhook Secrets
+* JWT Secrets
+* Database Credentials
+
+---
+
+Frontend must never receive secret values.
+
+---
+
+# Required Endpoints
+
+Admin Only
+
+GET
+
+/api/v1/admin/settings
+
+---
+
+PUT
+
+/api/v1/admin/settings
+
+---
+
+# Required Commands
+
+UpdateSystemSettingsCommand
+
+---
+
+# Required Queries
+
+GetSystemSettingsQuery
+
+---
+
+# Frontend Rules
+
+Settings Page
+
+Sections:
+
+General
+
+Affiliate
+
+Withdrawals
+
+Feature Flags
+
+---
+
+Settings UI must:
+
+* Validate inputs
+* Show current values
+* Confirm updates
+
+---
+
+# Testing Requirements
+
+✓ Load settings
+
+✓ Update settings
+
+✓ Validation rules
+
+✓ Audit log creation
+
+✓ Admin authorization
+
+✓ Secret masking
+
+---
+
+# Documentation Rules
+
+If settings structure changes:
+
+Update:
+
+* database-design.md
+* api-specification.md
+* tech-architecture.md
+
+---
+
+# Code Generation Checklist
+
+✓ Settings stored in database
+
+✓ No hardcoded business values
+
+✓ Admin-only updates
+
+✓ Validation implemented
+
+✓ Audit logging enabled
+
+✓ Secrets protected
+
+✓ Feature flags supported
+
+Configuration belongs to Settings, not source code.

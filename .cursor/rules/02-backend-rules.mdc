@@ -1,0 +1,630 @@
+---
+
+description: Backend Development Rules
+globs:
+- backend/**/*.cs
+alwaysApply: true
+
+---
+
+# Backend Rules
+
+These rules apply to all backend code.
+
+References:
+
+- docs/coding-standards.md
+- docs/tech-architecture.md
+- docs/api-specification.md
+- docs/database-design.md
+- docs/enums.md
+
+---
+
+# Technology Stack
+
+Framework
+
+- .NET 9
+- ASP.NET Core
+
+Libraries
+
+- MediatR
+- FluentValidation
+- Entity Framework Core
+- Serilog
+
+Database
+
+- PostgreSQL
+
+---
+
+# C# Rules
+
+Use modern C# features.
+
+Prefer:
+
+```csharp
+var user = new User();
+```
+
+Use file scoped namespaces.
+
+Preferred:
+
+```csharp
+namespace Cashback.Application.Features.Users;
+```
+
+Avoid nested namespaces.
+
+---
+
+# Async Rules
+
+All I/O operations must be async.
+
+Examples:
+
+- Database
+- HTTP Calls
+- File Operations
+
+---
+
+Method names must end with Async.
+
+Good:
+
+```csharp
+GetUserByIdAsync()
+```
+
+Bad:
+
+```csharp
+GetUserById()
+```
+
+when async.
+
+---
+
+Always pass CancellationToken.
+
+Good:
+
+```csharp
+await repository.GetByIdAsync(
+    id,
+    cancellationToken);
+```
+
+---
+
+# Controller Rules
+
+Controllers must be thin.
+
+Controller responsibilities:
+
+- Receive request
+- Forward request
+- Return response
+
+Nothing else.
+
+---
+
+Good:
+
+```csharp
+public async Task<IActionResult> Create(
+    CreateOrderCommand command,
+    CancellationToken cancellationToken)
+{
+    var result = await mediator.Send(
+        command,
+        cancellationToken);
+
+    return Ok(result);
+}
+```
+
+---
+
+Forbidden:
+
+- Business Logic
+- DbContext Queries
+- External API Calls
+
+---
+
+# MediatR Rules
+
+All use cases must use MediatR.
+
+Use:
+
+- IRequest
+- IRequestHandler
+
+Commands
+
+Write operations.
+
+Queries
+
+Read operations.
+
+---
+
+One use case = one handler.
+
+---
+
+# Handler Rules
+
+Handlers contain application logic.
+
+Handlers may:
+
+- Call repositories
+- Call infrastructure services
+- Execute business rules
+
+Handlers must NOT:
+
+- Return entities
+- Access HttpContext directly
+- Perform UI formatting
+
+---
+
+# Validation Rules
+
+Use FluentValidation.
+
+Create validator for every command.
+
+Examples:
+
+```csharp
+CreateWithdrawalValidator
+GenerateAffiliateLinkValidator
+```
+
+---
+
+Validation must NOT be inside:
+
+- Controller
+- Repository
+- Entity
+
+---
+
+# DTO Rules
+
+Always use DTOs.
+
+Request DTO
+
+```csharp
+CreateWithdrawalRequest
+```
+
+Response DTO
+
+```csharp
+WithdrawalResponse
+```
+
+---
+
+Forbidden:
+
+```csharp
+return user;
+```
+
+```csharp
+return order;
+```
+
+Entities must never leave backend boundaries.
+
+---
+
+# Result Pattern
+
+Use Result<T>.
+
+Preferred:
+
+```csharp
+Result<UserDto>
+```
+
+Avoid:
+
+```csharp
+throw Exception();
+```
+
+for normal business scenarios.
+
+---
+
+Business failures should return Result.Fail().
+
+Examples:
+
+- Insufficient balance
+- Invalid withdrawal amount
+- User not found
+
+---
+
+# Exception Rules
+
+Exceptions are for exceptional situations.
+
+Allowed:
+
+- ValidationException
+- NotFoundException
+- ForbiddenException
+- BusinessRuleException
+
+---
+
+Do not catch exceptions unless handling them.
+
+Avoid:
+
+```csharp
+try
+{
+}
+catch
+{
+}
+```
+
+inside every handler.
+
+Use global exception middleware.
+
+---
+
+# Entity Rules
+
+Entities represent business concepts.
+
+Examples:
+
+- User
+- Order
+- AffiliateLink
+- WithdrawRequest
+
+---
+
+Protect state.
+
+Prefer:
+
+```csharp
+public decimal AvailableBalance
+{
+    get;
+    private set;
+}
+```
+
+Avoid:
+
+```csharp
+public decimal AvailableBalance
+{
+    get;
+    set;
+}
+```
+
+unless necessary.
+
+---
+
+# Repository Rules
+
+Repositories handle persistence only.
+
+Allowed:
+
+- CRUD
+- Querying
+
+Forbidden:
+
+- Business Logic
+- HTTP Calls
+- OAuth Logic
+
+---
+
+Repository Example
+
+```csharp
+IUserRepository
+IOrderRepository
+```
+
+---
+
+# DbContext Rules
+
+DbContext only inside Persistence.
+
+Do not inject DbContext into:
+
+- Controllers
+- Domain
+- Infrastructure
+
+Prefer repository abstractions.
+
+---
+
+# EF Core Rules
+
+Use Fluent API.
+
+Preferred:
+
+```csharp
+builder.Property(x => x.Email)
+       .HasMaxLength(255)
+       .IsRequired();
+```
+
+Avoid DataAnnotations.
+
+---
+
+Use IEntityTypeConfiguration<T>.
+
+One configuration file per entity.
+
+---
+
+# Query Rules
+
+Read operations must use Queries.
+
+Large read operations should use projection.
+
+Preferred:
+
+```csharp
+.Select(x => new OrderDto())
+```
+
+Avoid:
+
+```csharp
+.ToList()
+.Select(...)
+```
+
+---
+
+Use AsNoTracking() for read-only queries.
+
+---
+
+# Transaction Rules
+
+Use database transactions when:
+
+- Multiple tables updated
+- Balance changes
+- Withdrawal processing
+
+Examples:
+
+- Withdrawal Completion
+- Cashback Approval
+
+---
+
+# Mapping Rules
+
+Do not manually map large objects repeatedly.
+
+Use mapping abstraction.
+
+Allowed:
+
+- Mapster
+- AutoMapper
+
+Preferred:
+
+Mapster
+
+---
+
+# Logging Rules
+
+Use ILogger<T>.
+
+Log:
+
+- Errors
+- External API Failures
+- Business Critical Events
+
+Examples:
+
+- Withdrawal Completed
+- Postback Received
+- Cashback Approved
+
+---
+
+Never log:
+
+- Passwords
+- JWT Tokens
+- API Secrets
+
+---
+
+# External API Rules
+
+All external integrations belong in Infrastructure.
+
+Examples:
+
+- AccesstradeClient
+- GoogleOAuthClient
+
+Use typed clients.
+
+Preferred:
+
+```csharp
+services.AddHttpClient<
+    IAccesstradeClient,
+    AccesstradeClient>();
+```
+
+---
+
+Do not call HttpClient directly inside handlers.
+
+---
+
+# Configuration Rules
+
+Use Options Pattern.
+
+Example:
+
+```csharp
+AccesstradeOptions
+JwtOptions
+GoogleOptions
+```
+
+Avoid:
+
+```csharp
+configuration["SomeKey"]
+```
+
+throughout codebase.
+
+---
+
+# Enum Rules
+
+Use enums defined in:
+
+docs/enums.md
+
+Do not hardcode values.
+
+Bad:
+
+```csharp
+if(status == 2)
+```
+
+Good:
+
+```csharp
+if(status == OrderStatus.Approved)
+```
+
+---
+
+# Security Rules
+
+Validate all input.
+
+Never trust client data.
+
+Always authorize protected endpoints.
+
+Use role-based authorization.
+
+Example:
+
+```csharp
+[Authorize(Roles = "Admin")]
+```
+
+---
+
+# File Organization Rules
+
+One public class per file.
+
+File name must match class name.
+
+Good:
+
+```text
+User.cs
+Order.cs
+GenerateAffiliateLinkHandler.cs
+```
+
+---
+
+# Testing Rules
+
+Business logic must be testable.
+
+Prefer constructor injection.
+
+Avoid static dependencies.
+
+Handlers should be unit-test friendly.
+
+---
+
+# Code Generation Checklist
+
+Before generating backend code:
+
+✓ Correct layer
+
+✓ Correct folder
+
+✓ MediatR used
+
+✓ DTO used
+
+✓ Validation exists
+
+✓ CancellationToken used
+
+✓ Async used
+
+✓ No business logic in controller
+
+✓ No entity exposed
+
+✓ Logging considered
+
+✓ Security considered
+
+If any item fails, refactor before completing generation.

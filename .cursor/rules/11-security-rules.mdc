@@ -1,0 +1,616 @@
+---
+
+description: Security Rules
+globs:
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Security Rules
+
+References:
+
+- docs/tech-architecture.md
+- docs/coding-standards.md
+- docs/deployment-guide.md
+
+---
+
+# Purpose
+
+Protect:
+
+- User Accounts
+- Financial Data
+- Affiliate Data
+- Withdrawal Operations
+- Administrative Functions
+
+Security takes precedence over convenience.
+
+---
+
+# Security Principles
+
+Follow:
+
+Least Privilege
+
+Defense In Depth
+
+Zero Trust
+
+Secure By Default
+
+---
+
+# Authentication Rules
+
+Provider
+
+Google OAuth
+
+JWT
+
+Refresh Token
+
+---
+
+Passwords are not supported in MVP.
+
+---
+
+Never trust:
+
+- Frontend state
+- Request body role
+- Query parameters
+
+---
+
+Authentication source:
+
+Validated JWT only.
+
+---
+
+# Authorization Rules
+
+All endpoints require authorization unless explicitly public.
+
+---
+
+Public Endpoints
+
+Health Check
+
+Google Login
+
+OAuth Callback
+
+Webhook Endpoint
+
+---
+
+Everything else:
+
+Authenticated.
+
+---
+
+# Role Based Access
+
+Roles:
+
+User
+
+Admin
+
+---
+
+User
+
+Can access:
+
+Own Data Only
+
+---
+
+Admin
+
+Can access:
+
+Administrative Features
+
+---
+
+Never expose admin features to normal users.
+
+---
+
+# Ownership Validation
+
+Critical Requirement
+
+Users may only access their own:
+
+- Orders
+- Withdrawals
+- Notifications
+- Affiliate Links
+
+---
+
+Always verify:
+
+CurrentUserId == ResourceOwnerId
+
+---
+
+Never trust:
+
+UserId from frontend.
+
+---
+
+# JWT Rules
+
+Required Claims
+
+UserId
+
+Email
+
+Role
+
+---
+
+Access Token Lifetime
+
+Recommended
+
+15 Minutes
+
+---
+
+Refresh Token Lifetime
+
+Recommended
+
+30 Days
+
+---
+
+Values must be configurable.
+
+---
+
+# Refresh Token Rules
+
+Store in database.
+
+Suggested Fields
+
+- Token
+- UserId
+- ExpiresAt
+- RevokedAt
+
+---
+
+Never store plaintext tokens.
+
+Store hashes only.
+
+---
+
+# Secret Management
+
+Secrets must not exist in source code.
+
+---
+
+Forbidden
+
+```csharp
+var secret = "my-secret";
+```
+
+---
+
+Use:
+
+Environment Variables
+
+Secret Manager
+
+Configuration Provider
+
+---
+
+Examples
+
+JWT Secret
+
+Database Connection String
+
+Google Client Secret
+
+Webhook Secret
+
+Provider Tokens
+
+---
+
+# Password Rules
+
+MVP
+
+No passwords.
+
+---
+
+Future
+
+Use:
+
+BCrypt
+
+Argon2
+
+---
+
+Never use:
+
+MD5
+
+SHA1
+
+Custom Hashing
+
+---
+
+# API Security
+
+Enable HTTPS only.
+
+---
+
+Reject:
+
+HTTP requests in production.
+
+---
+
+Use:
+
+HSTS
+
+Secure Headers
+
+---
+
+# CORS Rules
+
+Whitelist origins.
+
+---
+
+Bad
+
+```csharp
+AllowAnyOrigin()
+```
+
+---
+
+Production
+
+Explicit Origins Only.
+
+---
+
+# Input Validation
+
+All inputs must be validated.
+
+Use:
+
+FluentValidation
+
+---
+
+Never trust:
+
+Request payloads.
+
+---
+
+Validation required for:
+
+URLs
+
+Amounts
+
+Identifiers
+
+Filters
+
+Pagination
+
+---
+
+# SQL Injection Protection
+
+Use:
+
+Entity Framework Core
+
+Parameterized Queries
+
+---
+
+Never concatenate SQL strings.
+
+---
+
+Forbidden
+
+```csharp
+"SELECT - FROM Users WHERE Id=" + userId
+```
+
+---
+
+# XSS Protection
+
+Frontend must:
+
+Escape user content.
+
+---
+
+Never render raw HTML unless explicitly required.
+
+---
+
+Use React default escaping.
+
+---
+
+# CSRF Rules
+
+JWT API
+
+Low Risk
+
+---
+
+Future
+
+Enable anti-forgery for cookie-based auth.
+
+---
+
+# Rate Limiting
+
+Required
+
+Examples
+
+Login
+
+10 requests / minute
+
+---
+
+Affiliate Link Generation
+
+100 requests / hour
+
+---
+
+Webhook Endpoint
+
+Provider-specific limits
+
+---
+
+Values configurable.
+
+---
+
+# Financial Security
+
+Critical Requirement
+
+Balance changes only occur through:
+
+Orders Module
+
+Withdrawals Module
+
+---
+
+Admin cannot directly modify balances.
+
+---
+
+Every financial action must create audit records.
+
+---
+
+# Withdrawal Security
+
+Validate:
+
+Ownership
+
+Available Balance
+
+Status Transition
+
+---
+
+All withdrawal actions must be logged.
+
+---
+
+# Webhook Security
+
+Required
+
+Signature Validation
+
+Secret Validation
+
+Replay Protection
+
+---
+
+Never process unverified webhooks.
+
+---
+
+# File Upload Rules
+
+Future Feature
+
+Validate:
+
+File Type
+
+File Size
+
+File Extension
+
+---
+
+Never trust MIME type alone.
+
+---
+
+# Logging Rules
+
+Never log:
+
+Passwords
+
+Tokens
+
+Secrets
+
+Refresh Tokens
+
+Connection Strings
+
+Bank Account Numbers
+
+---
+
+Sensitive data must be masked.
+
+---
+
+# Audit Requirements
+
+Must Audit
+
+Withdrawal Approval
+
+Withdrawal Rejection
+
+Settings Changes
+
+User Suspension
+
+Admin Actions
+
+---
+
+Audit logs must be immutable.
+
+---
+
+# Dependency Security
+
+Update dependencies regularly.
+
+---
+
+Do not use:
+
+Abandoned Packages
+
+Unknown Packages
+
+---
+
+Prefer:
+
+Official Libraries
+
+Well Maintained Libraries
+
+---
+
+# Security Headers
+
+Recommended
+
+Content-Security-Policy
+
+X-Content-Type-Options
+
+X-Frame-Options
+
+Referrer-Policy
+
+---
+
+# Testing Requirements
+
+✓ Authorization
+
+✓ Authentication
+
+✓ Ownership Validation
+
+✓ Token Expiration
+
+✓ Refresh Token Rotation
+
+✓ Rate Limiting
+
+✓ Input Validation
+
+✓ Webhook Validation
+
+✓ Security Headers
+
+---
+
+# Code Generation Checklist
+
+✓ JWT Authentication
+
+✓ Role Authorization
+
+✓ Ownership Validation
+
+✓ HTTPS Enabled
+
+✓ Secrets Externalized
+
+✓ Input Validation
+
+✓ Audit Logging
+
+✓ Rate Limiting
+
+✓ Webhook Protection
+
+Security defects are production blockers.
