@@ -59,6 +59,10 @@ public sealed class ExceptionMiddleware
                 StatusCodes.Status404NotFound,
                 notFoundException.Message,
                 null),
+            BusinessRuleException businessRuleException => (
+                StatusCodes.Status409Conflict,
+                businessRuleException.Message,
+                null),
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "An unexpected error occurred.",

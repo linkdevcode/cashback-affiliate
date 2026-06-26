@@ -1,5 +1,4 @@
 using Cashback.Domain.Common;
-using Cashback.Domain.Enums;
 
 namespace Cashback.Domain.Entities;
 
@@ -29,19 +28,14 @@ public class AffiliateLink : BaseEntity
     public string? ShortUrl { get; private set; }
 
     /// <summary>
+    /// Primary tracking parameter sent to the affiliate provider.
+    /// </summary>
+    public string Sub1 { get; private set; } = null!;
+
+    /// <summary>
     /// Affiliate campaign identifier.
     /// </summary>
     public string? CampaignId { get; private set; }
-
-    /// <summary>
-    /// Tracking sub-identifier used to map conversions to users.
-    /// </summary>
-    public string SubId { get; private set; } = null!;
-
-    /// <summary>
-    /// Merchant associated with the link.
-    /// </summary>
-    public MerchantType? Merchant { get; private set; }
 
     /// <summary>
     /// UTC timestamp when the link was generated.
@@ -57,4 +51,35 @@ public class AffiliateLink : BaseEntity
     /// Orders attributed to this affiliate link.
     /// </summary>
     public ICollection<Order> Orders { get; private set; } = [];
+
+    /// <summary>
+    /// Required by Entity Framework.
+    /// </summary>
+    private AffiliateLink()
+    {
+    }
+
+    /// <summary>
+    /// Creates a new affiliate link record.
+    /// </summary>
+    public static AffiliateLink Create(
+        Guid userId,
+        string originalUrl,
+        string affiliateUrl,
+        string? shortUrl,
+        string sub1,
+        string? campaignId)
+    {
+        return new AffiliateLink
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            OriginalUrl = originalUrl,
+            AffiliateUrl = affiliateUrl,
+            ShortUrl = shortUrl,
+            Sub1 = sub1,
+            CampaignId = campaignId,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 }

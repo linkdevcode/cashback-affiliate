@@ -76,8 +76,6 @@ Status Legend
 * [x] User Entity
 * [x] User Repository
 * [x] Get Current User API
-* [ ] Update Profile API
-* [ ] User Dashboard Summary API
 
 ---
 
@@ -87,36 +85,36 @@ Status Legend
 
 ### Infrastructure
 
-* [ ] Create IAffiliateProvider
-* [ ] Create AccesstradeProvider
-* [ ] Configure API Client
-* [ ] Configure Campaign Settings
+* [x] Create IAffiliateProvider
+* [x] Create AccesstradeProvider
+* [x] Configure API Client
+* [x] Configure Campaign Settings
 
 ### Backend
 
-* [ ] Generate Affiliate Link Command
-* [ ] URL Validation
-* [ ] Generate Sub1 From UserId
-* [ ] Save Affiliate Link
+* [x] Generate Affiliate Link Command
+* [x] URL Validation
+* [x] Generate Sub1 From UserId
+* [x] Save Affiliate Link
 
 ---
 
 ## Feature 3.2 - Affiliate Link History
 
-* [ ] AffiliateLink Entity
-* [ ] AffiliateLink Repository
-* [ ] Get User Links API
-* [ ] Get Link Detail API
+* [x] AffiliateLink Entity
+* [x] AffiliateLink Repository
+* [x] Get User Links API
+* [x] Get Link Detail API
 
 ---
 
 ## Feature 3.3 - Affiliate UI
 
-* [ ] Link Converter Page
-* [ ] Paste URL Form
-* [ ] Generate Link Button
-* [ ] Copy Link Button
-* [ ] Link History Table
+* [x] Link Converter Page
+* [x] Paste URL Form
+* [x] Generate Link Button
+* [x] Copy Link Button
+* [x] Link History Table
 
 ---
 

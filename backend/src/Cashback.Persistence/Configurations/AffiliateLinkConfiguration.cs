@@ -1,5 +1,4 @@
 using Cashback.Domain.Entities;
-using Cashback.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -28,23 +27,19 @@ public class AffiliateLinkConfiguration : IEntityTypeConfiguration<AffiliateLink
         builder.Property(link => link.ShortUrl)
             .HasColumnType("text");
 
-        builder.Property(link => link.CampaignId)
-            .HasMaxLength(100);
-
-        builder.Property(link => link.SubId)
+        builder.Property(link => link.Sub1)
             .HasMaxLength(100)
             .IsRequired();
 
-        builder.Property(link => link.Merchant)
-            .HasConversion<int>();
+        builder.Property(link => link.CampaignId)
+            .HasMaxLength(100);
 
         builder.Property(link => link.CreatedAt)
             .IsRequired();
 
         builder.HasIndex(link => link.UserId);
 
-        builder.HasIndex(link => link.SubId)
-            .IsUnique();
+        builder.HasIndex(link => link.Sub1);
 
         builder.HasOne(link => link.User)
             .WithMany(user => user.AffiliateLinks)
