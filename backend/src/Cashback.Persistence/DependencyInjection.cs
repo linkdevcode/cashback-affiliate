@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IAffiliateLinkRepository, AffiliateLinkRepository>();
         services.AddScoped<IWebhookEventRepository, WebhookEventRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IWithdrawalRepository, WithdrawalRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
         return services;

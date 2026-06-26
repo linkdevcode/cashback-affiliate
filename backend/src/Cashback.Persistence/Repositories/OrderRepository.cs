@@ -99,6 +99,54 @@ public class OrderRepository : IOrderRepository
     }
 
     /// <inheritdoc/>
+    public async Task<IReadOnlyList<Order>> GetRecentByUserIdAsync(
+        Guid userId,
+        int count,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Orders
+            .AsNoTracking()
+            .Where(order => order.UserId == userId)
+            .OrderByDescending(order => order.CreatedAt)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<MonthlyCashbackTotal>> GetMonthlyCashbackTotalsAsync(
+        Guid userId,
+        int monthCount,
+        CancellationToken cancellationToken)
+    {
+        var utcNow = DateTime.UtcNow;
+        var startMonth = new DateTime(utcNow.Year, utcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc)
+            .AddMonths(-(monthCount - 1));
+
+        var grouped = await _context.Orders
+            .AsNoTracking()
+            .Where(order => order.UserId == userId && order.CreatedAt >= startMonth)
+            .GroupBy(order => new { order.CreatedAt.Year, order.CreatedAt.Month })
+            .Select(group => new MonthlyCashbackTotal(
+                group.Key.Year,
+                group.Key.Month,
+                group.Sum(order => order.CashbackAmount)))
+            .ToListAsync(cancellationToken);
+
+        var results = new List<MonthlyCashbackTotal>(monthCount);
+
+        for (var index = 0; index < monthCount; index++)
+        {
+            var monthDate = startMonth.AddMonths(index);
+            var existing = grouped.FirstOrDefault(
+                item => item.Year == monthDate.Year && item.Month == monthDate.Month);
+
+            results.Add(existing ?? new MonthlyCashbackTotal(monthDate.Year, monthDate.Month, 0m));
+        }
+
+        return results;
+    }
+
+    /// <inheritdoc/>
     public async Task<EarningsByStatus> GetEarningsByStatusAsync(
         Guid userId,
         CancellationToken cancellationToken)

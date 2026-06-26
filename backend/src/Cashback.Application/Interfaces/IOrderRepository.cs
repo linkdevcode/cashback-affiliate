@@ -57,6 +57,22 @@ public interface IOrderRepository
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Gets the most recent orders for a user.
+    /// </summary>
+    Task<IReadOnlyList<Order>> GetRecentByUserIdAsync(
+        Guid userId,
+        int count,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets monthly cashback totals for a user over a number of months.
+    /// </summary>
+    Task<IReadOnlyList<MonthlyCashbackTotal>> GetMonthlyCashbackTotalsAsync(
+        Guid userId,
+        int monthCount,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Persists a new order.
     /// </summary>
     Task AddAsync(Order order, CancellationToken cancellationToken);

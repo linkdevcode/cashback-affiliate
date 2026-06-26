@@ -224,26 +224,26 @@ Status Legend
 
 ## Feature 6.1 - User Dashboard
 
-* [ ] Available Balance
-* [ ] Pending Cashback
-* [ ] Total Cashback
-* [ ] Total Withdrawn
-* [ ] Recent Orders
+* [x] Available Balance
+* [x] Pending Cashback
+* [x] Total Cashback
+* [x] Total Withdrawn
+* [x] Recent Orders
 
 ---
 
 ## Feature 6.2 - Dashboard APIs
 
-* [ ] Dashboard Summary Query
-* [ ] Dashboard Endpoint
+* [x] Dashboard Summary Query
+* [x] Dashboard Endpoint
 
 ---
 
 ## Feature 6.3 - Dashboard UI
 
-* [ ] Summary Cards
-* [ ] Earnings Chart
-* [ ] Recent Activities
+* [x] Summary Cards
+* [x] Earnings Chart
+* [x] Recent Activities
 
 ---
 
