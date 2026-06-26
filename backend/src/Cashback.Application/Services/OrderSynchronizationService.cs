@@ -13,7 +13,7 @@ public sealed class OrderSynchronizationService : IOrderSynchronizationService
 {
     private readonly IWebhookUserResolver _userResolver;
     private readonly IOrderRepository _orderRepository;
-    private readonly ICashbackSettings _cashbackSettings;
+    private readonly ICashbackService _cashbackService;
     private readonly ILogger<OrderSynchronizationService> _logger;
 
     /// <summary>
@@ -22,12 +22,12 @@ public sealed class OrderSynchronizationService : IOrderSynchronizationService
     public OrderSynchronizationService(
         IWebhookUserResolver userResolver,
         IOrderRepository orderRepository,
-        ICashbackSettings cashbackSettings,
+        ICashbackService cashbackService,
         ILogger<OrderSynchronizationService> logger)
     {
         _userResolver = userResolver;
         _orderRepository = orderRepository;
-        _cashbackSettings = cashbackSettings;
+        _cashbackService = cashbackService;
         _logger = logger;
     }
 
@@ -42,7 +42,7 @@ public sealed class OrderSynchronizationService : IOrderSynchronizationService
             throw new BusinessRuleException("Unable to resolve user from webhook tracking parameter.");
         }
 
-        var (cashbackAmount, platformProfit) = CalculateCashback(request.CommissionAmount);
+        var cashback = _cashbackService.CalculateCashback(request.CommissionAmount);
         var existingOrder = await _orderRepository.GetByNetworkOrderIdForUpdateAsync(
             request.NetworkOrderId,
             cancellationToken);
@@ -58,8 +58,8 @@ public sealed class OrderSynchronizationService : IOrderSynchronizationService
 
             existingOrder.UpdateFromWebhook(
                 request.CommissionAmount,
-                cashbackAmount,
-                platformProfit,
+                cashback.CashbackAmount,
+                cashback.PlatformRevenue,
                 request.TargetStatus);
 
             await _orderRepository.UpdateAsync(existingOrder, cancellationToken);
@@ -84,8 +84,8 @@ public sealed class OrderSynchronizationService : IOrderSynchronizationService
             userResolution.AffiliateLinkId,
             request.NetworkOrderId,
             request.CommissionAmount,
-            cashbackAmount,
-            platformProfit,
+            cashback.CashbackAmount,
+            cashback.PlatformRevenue,
             request.TargetStatus);
 
         await _orderRepository.AddAsync(order, cancellationToken);
@@ -102,20 +102,5 @@ public sealed class OrderSynchronizationService : IOrderSynchronizationService
             Status = order.Status,
             WasCreated = true
         };
-    }
-
-    /// <summary>
-    /// Calculates cashback and platform profit from commission amount.
-    /// </summary>
-    private (decimal CashbackAmount, decimal PlatformProfit) CalculateCashback(decimal commissionAmount)
-    {
-        var cashbackRate = _cashbackSettings.CashbackPercentage / 100m;
-        var cashbackAmount = Math.Round(
-            commissionAmount * cashbackRate,
-            2,
-            MidpointRounding.AwayFromZero);
-        var platformProfit = commissionAmount - cashbackAmount;
-
-        return (cashbackAmount, platformProfit);
     }
 }

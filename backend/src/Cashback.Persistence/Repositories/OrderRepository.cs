@@ -1,5 +1,6 @@
 using Cashback.Application.Interfaces;
 using Cashback.Domain.Entities;
+using Cashback.Domain.Enums;
 using Cashback.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +41,86 @@ public class OrderRepository : IOrderRepository
     }
 
     /// <inheritdoc/>
+    public async Task<Order?> GetByIdForUserAsync(
+        Guid id,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Orders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(order => order.Id == id && order.UserId == userId, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<(IReadOnlyList<Order> Items, int TotalCount)> GetPagedByUserIdAsync(
+        Guid userId,
+        int page,
+        int pageSize,
+        OrderStatus? status,
+        string sortBy,
+        string sortDirection,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.Orders
+            .AsNoTracking()
+            .Where(order => order.UserId == userId);
+
+        if (status.HasValue)
+        {
+            query = query.Where(order => order.Status == status.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await ApplySorting(query, sortBy, sortDirection)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    /// <inheritdoc/>
+    public async Task<OrderUserSummary> GetUserSummaryAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var orders = _context.Orders
+            .AsNoTracking()
+            .Where(order => order.UserId == userId);
+
+        return new OrderUserSummary(
+            await orders.CountAsync(cancellationToken),
+            await orders.CountAsync(order => order.Status == OrderStatus.Pending, cancellationToken),
+            await orders.CountAsync(order => order.Status == OrderStatus.Approved, cancellationToken),
+            await orders.CountAsync(order => order.Status == OrderStatus.Rejected, cancellationToken),
+            await orders.SumAsync(order => order.CommissionAmount, cancellationToken),
+            await orders.SumAsync(order => order.CashbackAmount, cancellationToken));
+    }
+
+    /// <inheritdoc/>
+    public async Task<EarningsByStatus> GetEarningsByStatusAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var totalsByStatus = await _context.Orders
+            .AsNoTracking()
+            .Where(order => order.UserId == userId)
+            .GroupBy(order => order.Status)
+            .Select(group => new
+            {
+                group.Key,
+                TotalCashback = group.Sum(order => order.CashbackAmount)
+            })
+            .ToListAsync(cancellationToken);
+
+        return new EarningsByStatus(
+            totalsByStatus.FirstOrDefault(item => item.Key == OrderStatus.Pending)?.TotalCashback ?? 0m,
+            totalsByStatus.FirstOrDefault(item => item.Key == OrderStatus.Approved)?.TotalCashback ?? 0m,
+            totalsByStatus.FirstOrDefault(item => item.Key == OrderStatus.Rejected)?.TotalCashback ?? 0m);
+    }
+
+    /// <inheritdoc/>
     public async Task AddAsync(Order order, CancellationToken cancellationToken)
     {
         await _context.Orders.AddAsync(order, cancellationToken);
@@ -51,5 +132,32 @@ public class OrderRepository : IOrderRepository
     {
         _context.Orders.Update(order);
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Applies sorting to an order query.
+    /// </summary>
+    private static IQueryable<Order> ApplySorting(
+        IQueryable<Order> query,
+        string sortBy,
+        string sortDirection)
+    {
+        var descending = sortDirection.Equals("desc", StringComparison.OrdinalIgnoreCase);
+
+        return sortBy.ToLowerInvariant() switch
+        {
+            "commissionamount" => descending
+                ? query.OrderByDescending(order => order.CommissionAmount)
+                : query.OrderBy(order => order.CommissionAmount),
+            "cashbackamount" => descending
+                ? query.OrderByDescending(order => order.CashbackAmount)
+                : query.OrderBy(order => order.CashbackAmount),
+            "status" => descending
+                ? query.OrderByDescending(order => order.Status)
+                : query.OrderBy(order => order.Status),
+            _ => descending
+                ? query.OrderByDescending(order => order.CreatedAt)
+                : query.OrderBy(order => order.CreatedAt)
+        };
     }
 }

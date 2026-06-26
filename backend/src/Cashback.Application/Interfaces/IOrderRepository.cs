@@ -1,4 +1,5 @@
 using Cashback.Domain.Entities;
+using Cashback.Domain.Enums;
 
 namespace Cashback.Application.Interfaces;
 
@@ -19,6 +20,40 @@ public interface IOrderRepository
     /// </summary>
     Task<Order?> GetByNetworkOrderIdForUpdateAsync(
         string networkOrderId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets an order by identifier for a specific user.
+    /// </summary>
+    Task<Order?> GetByIdForUserAsync(
+        Guid id,
+        Guid userId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets a paginated list of orders for a user with optional filtering and sorting.
+    /// </summary>
+    Task<(IReadOnlyList<Order> Items, int TotalCount)> GetPagedByUserIdAsync(
+        Guid userId,
+        int page,
+        int pageSize,
+        OrderStatus? status,
+        string sortBy,
+        string sortDirection,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets aggregated order statistics for a user.
+    /// </summary>
+    Task<OrderUserSummary> GetUserSummaryAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets cashback totals grouped by order status for a user.
+    /// </summary>
+    Task<EarningsByStatus> GetEarningsByStatusAsync(
+        Guid userId,
         CancellationToken cancellationToken);
 
     /// <summary>

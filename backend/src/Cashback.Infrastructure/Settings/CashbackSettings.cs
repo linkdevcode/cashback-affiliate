@@ -16,7 +16,12 @@ public sealed class CashbackOptions
     /// <summary>
     /// Percentage of commission paid to users as cashback.
     /// </summary>
-    public decimal Percentage { get; init; } = 70m;
+    public decimal CashbackPercentage { get; init; } = 80m;
+
+    /// <summary>
+    /// Percentage of commission retained by the platform.
+    /// </summary>
+    public decimal PlatformCommissionPercentage { get; init; } = 20m;
 }
 
 /// <summary>
@@ -32,9 +37,13 @@ public sealed class CashbackSettings : ICashbackSettings
         var options = configuration.GetSection(CashbackOptions.SectionName).Get<CashbackOptions>()
             ?? new CashbackOptions();
 
-        CashbackPercentage = options.Percentage;
+        CashbackPercentage = options.CashbackPercentage;
+        PlatformCommissionPercentage = options.PlatformCommissionPercentage;
     }
 
     /// <inheritdoc/>
     public decimal CashbackPercentage { get; }
+
+    /// <inheritdoc/>
+    public decimal PlatformCommissionPercentage { get; }
 }

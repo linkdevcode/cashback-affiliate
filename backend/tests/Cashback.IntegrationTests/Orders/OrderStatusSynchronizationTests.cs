@@ -49,9 +49,12 @@ public sealed class OrderStatusSynchronizationTests : IAsyncLifetime
         var cashbackSettings = new CashbackSettings(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Cashback:Percentage"] = "70"
+                ["Cashback:CashbackPercentage"] = "80",
+                ["Cashback:PlatformCommissionPercentage"] = "20"
             })
             .Build());
+
+        var cashbackService = new CashbackService(cashbackSettings);
 
         var userResolver = new WebhookSub1UserResolver(
             _userRepository,
@@ -61,7 +64,7 @@ public sealed class OrderStatusSynchronizationTests : IAsyncLifetime
         var orderSynchronizationService = new OrderSynchronizationService(
             userResolver,
             _orderRepository,
-            cashbackSettings,
+            cashbackService,
             NullLogger<OrderSynchronizationService>.Instance);
 
         var auditLogService = new AuditLogService(_auditLogRepository);
@@ -116,7 +119,8 @@ public sealed class OrderStatusSynchronizationTests : IAsyncLifetime
         Assert.NotNull(order);
         Assert.Equal(_userId, order.UserId);
         Assert.Equal(100_000m, order.CommissionAmount);
-        Assert.Equal(70_000m, order.CashbackAmount);
+        Assert.Equal(80_000m, order.CashbackAmount);
+        Assert.Equal(20_000m, order.PlatformProfit);
         Assert.Equal(OrderStatus.Approved, order.Status);
 
         var auditLogs = await _context.AuditLogs.ToListAsync();
@@ -138,8 +142,8 @@ public sealed class OrderStatusSynchronizationTests : IAsyncLifetime
             null,
             "ORDER-200",
             50_000m,
-            35_000m,
-            15_000m,
+            40_000m,
+            10_000m,
             OrderStatus.Pending);
 
         await _orderRepository.AddAsync(pendingOrder, CancellationToken.None);
@@ -155,6 +159,8 @@ public sealed class OrderStatusSynchronizationTests : IAsyncLifetime
         var order = await _orderRepository.GetByNetworkOrderIdAsync("ORDER-200", CancellationToken.None);
         Assert.NotNull(order);
         Assert.Equal(80_000m, order.CommissionAmount);
+        Assert.Equal(64_000m, order.CashbackAmount);
+        Assert.Equal(16_000m, order.PlatformProfit);
         Assert.Equal(OrderStatus.Approved, order.Status);
 
         var auditLogs = await _context.AuditLogs.ToListAsync();
@@ -196,8 +202,8 @@ public sealed class OrderStatusSynchronizationTests : IAsyncLifetime
             null,
             "ORDER-400",
             60_000m,
-            42_000m,
-            18_000m,
+            48_000m,
+            12_000m,
             OrderStatus.Pending);
 
         await _orderRepository.AddAsync(pendingOrder, CancellationToken.None);

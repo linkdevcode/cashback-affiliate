@@ -251,6 +251,8 @@ Query Parameters
 ?page=1
 &pageSize=20
 &status=2
+&sortBy=createdAt
+&direction=desc
 
 Response
 
@@ -293,6 +295,29 @@ Response
     "cashbackAmount": 70000,
     "platformProfit": 30000,
     "status": 2
+  }
+}
+
+---
+
+## Get Order Summary
+
+GET /orders/summary
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "totalOrders": 12,
+    "pendingOrders": 3,
+    "approvedOrders": 8,
+    "rejectedOrders": 1,
+    "totalCommission": 1200000,
+    "totalCashback": 960000,
+    "pendingCashback": 150000,
+    "approvedCashback": 750000,
+    "rejectedCashback": 60000
   }
 }
 

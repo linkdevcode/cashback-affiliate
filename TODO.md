@@ -130,26 +130,26 @@ Status Legend
 
 ## Feature 4.2 - Cashback Calculation
 
-* [ ] Cashback Service
-* [ ] Cashback Configuration
-* [ ] Cashback Calculation Logic
+* [x] Cashback Service
+* [x] Cashback Configuration
+* [x] Cashback Calculation Logic
 
 ---
 
 ## Feature 4.3 - Order APIs
 
-* [ ] Get Orders API
-* [ ] Get Order Detail API
-* [ ] Get Order Summary API
+* [x] Get Orders API
+* [x] Get Order Detail API
+* [x] Get Order Summary API
 
 ---
 
 ## Feature 4.4 - Orders UI
 
-* [ ] Orders Page
-* [ ] Status Filters
-* [ ] Order Details Modal
-* [ ] Earnings Summary
+* [x] Orders Page
+* [x] Status Filters
+* [x] Order Details Modal
+* [x] Earnings Summary
 
 ---
 
@@ -211,6 +211,16 @@ Status Legend
 ---
 
 # EPIC 6 - Dashboard Module
+
+## Earnings Summary Service
+
+* [x] IEarningsService
+* [x] EarningsService
+* [x] EarningsSummaryDto
+* [x] Summary Calculations
+* [x] Unit Tests
+
+---
 
 ## Feature 6.1 - User Dashboard
 
@@ -441,7 +451,7 @@ Status Legend
 * [ ] Generate Affiliate Link
 * [ ] Webhook Processing
 * [ ] Order Tracking
-* [ ] Cashback Calculation
+* [x] Cashback Calculation
 * [ ] Withdrawal Requests
 
 ---

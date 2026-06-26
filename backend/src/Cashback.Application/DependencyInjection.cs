@@ -32,6 +32,8 @@ public static class DependencyInjection
         services.AddScoped<IWebhookIdempotencyService, WebhookIdempotencyService>();
         services.AddScoped<IWebhookProcessingService, WebhookProcessingService>();
         services.AddScoped<IWebhookUserResolver, WebhookSub1UserResolver>();
+        services.AddScoped<ICashbackService, CashbackService>();
+        services.AddScoped<IEarningsService, EarningsService>();
         services.AddScoped<IOrderSynchronizationService, OrderSynchronizationService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
 
