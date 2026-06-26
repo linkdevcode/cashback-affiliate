@@ -23,6 +23,8 @@ public static class ServiceCollectionExtensions
 
         services.AddJwtAuthentication(configuration);
 
+        services.AddFrontendCors();
+
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 

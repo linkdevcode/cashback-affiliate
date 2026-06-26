@@ -76,6 +76,8 @@ Status Legend
 * [x] User Entity
 * [x] User Repository
 * [x] Get Current User API
+* [ ] Update Profile API
+* [ ] User Dashboard Summary API
 
 ---
 
@@ -192,8 +194,6 @@ Status Legend
 * [ ] Total Cashback
 * [ ] Total Withdrawn
 * [ ] Recent Orders
-* [ ] Update Profile API
-* [ ] User Dashboard Summary API
 
 ---
 

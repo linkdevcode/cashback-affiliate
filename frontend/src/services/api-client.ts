@@ -14,7 +14,7 @@ import type { ApiResponse, ApiErrorResponse } from "@/types/api";
 import type { RefreshTokenResponse } from "@/types/auth";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5050/api/v1";
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
