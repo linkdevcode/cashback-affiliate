@@ -43,10 +43,10 @@ Status Legend
 
 ## Feature 1.2 - DevOps Setup
 
-* [ ] Dockerfile Backend
-* [ ] Dockerfile Frontend
-* [ ] docker-compose.yml
-* [ ] Environment Configuration
+* [x] Dockerfile Backend
+* [x] Dockerfile Frontend
+* [x] docker-compose.yml
+* [x] Environment Configuration
 * [ ] Health Check Endpoint
 * [ ] CI/CD Pipeline
 

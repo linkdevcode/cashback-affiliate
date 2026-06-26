@@ -2,9 +2,9 @@
 
 description: Settings Module Rules
 globs:
-* backend/**/*.cs
-* frontend/**/*.ts
-* frontend/**/*.tsx
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
 alwaysApply: true
 
 ---
@@ -13,10 +13,10 @@ alwaysApply: true
 
 References:
 
-* docs/product-requirements.md
-* docs/database-design.md
-* docs/enums.md
-* docs/tech-architecture.md
+- docs/product-requirements.md
+- docs/database-design.md
+- docs/enums.md
+- docs/tech-architecture.md
 
 ---
 
@@ -24,10 +24,10 @@ References:
 
 Responsibilities:
 
-* Business Configuration
-* System Configuration
-* Provider Configuration
-* Feature Toggles
+- Business Configuration
+- System Configuration
+- Provider Configuration
+- Feature Toggles
 
 Settings allow business behavior changes without code changes.
 
@@ -65,13 +65,13 @@ SystemSetting
 
 Fields:
 
-* Id
-* Key
-* Value
-* Description
-* Category
-* UpdatedAt
-* UpdatedBy
+- Id
+- Key
+- Value
+- Description
+- Category
+- UpdatedAt
+- UpdatedBy
 
 ---
 
@@ -198,9 +198,9 @@ Before saving:
 
 Validate:
 
-* Data Type
-* Range
-* Required Values
+- Data Type
+- Range
+- Required Values
 
 ---
 
@@ -252,10 +252,10 @@ Every settings update must create audit log.
 
 Store:
 
-* Old Value
-* New Value
-* Updated By
-* Updated At
+- Old Value
+- New Value
+- Updated By
+- Updated At
 
 ---
 
@@ -267,10 +267,10 @@ Settings changes must be traceable.
 
 Never expose:
 
-* API Secrets
-* Webhook Secrets
-* JWT Secrets
-* Database Credentials
+- API Secrets
+- Webhook Secrets
+- JWT Secrets
+- Database Credentials
 
 ---
 
@@ -324,9 +324,9 @@ Feature Flags
 
 Settings UI must:
 
-* Validate inputs
-* Show current values
-* Confirm updates
+- Validate inputs
+- Show current values
+- Confirm updates
 
 ---
 
@@ -352,9 +352,9 @@ If settings structure changes:
 
 Update:
 
-* database-design.md
-* api-specification.md
-* tech-architecture.md
+- database-design.md
+- api-specification.md
+- tech-architecture.md
 
 ---
 

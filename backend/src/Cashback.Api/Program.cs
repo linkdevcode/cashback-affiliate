@@ -6,12 +6,17 @@ builder.Services.AddApiServices(builder.Configuration);
 
 var app = builder.Build();
 
+await app.ApplyMigrationsAsync();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthorization();
 

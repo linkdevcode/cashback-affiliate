@@ -2,9 +2,9 @@
 
 description: Dashboard Module Rules
 globs:
-* backend/**/*.cs
-* frontend/**/*.ts
-* frontend/**/*.tsx
+- backend/**/*.cs
+- frontend/**/*.ts
+- frontend/**/*.tsx
 alwaysApply: true
 
 ---
@@ -13,10 +13,10 @@ alwaysApply: true
 
 References:
 
-* docs/product-requirements.md
-* docs/user-flows.md
-* docs/api-specification.md
-* docs/database-design.md
+- docs/product-requirements.md
+- docs/user-flows.md
+- docs/api-specification.md
+- docs/database-design.md
 
 ---
 
@@ -24,11 +24,11 @@ References:
 
 Responsibilities:
 
-* User Dashboard
-* Earnings Summary
-* Cashback Statistics
-* Withdrawal Statistics
-* Affiliate Link Statistics
+- User Dashboard
+- Earnings Summary
+- Cashback Statistics
+- Withdrawal Statistics
+- Affiliate Link Statistics
 
 Dashboard is a read-only aggregation module.
 
@@ -40,10 +40,10 @@ Dashboard never owns data.
 
 Dashboard only aggregates data from:
 
-* Users
-* AffiliateLinks
-* Orders
-* Withdrawals
+- Users
+- AffiliateLinks
+- Orders
+- Withdrawals
 
 Dashboard must never create or modify business data.
 
@@ -216,12 +216,12 @@ GET
 
 Returns:
 
-* Available Balance
-* Pending Cashback
-* Total Cashback
-* Total Withdrawn
-* Total Links
-* Total Orders
+- Available Balance
+- Pending Cashback
+- Total Cashback
+- Total Withdrawn
+- Total Links
+- Total Orders
 
 ---
 
@@ -239,26 +239,26 @@ Admin Metrics
 
 Users
 
-* Total Users
-* Active Users
-* New Users Today
+- Total Users
+- Active Users
+- New Users Today
 
 Orders
 
-* Total Orders
-* Pending Orders
-* Approved Orders
+- Total Orders
+- Pending Orders
+- Approved Orders
 
 Revenue
 
-* Total Commission
-* Total Cashback Paid
-* Platform Profit
+- Total Commission
+- Total Cashback Paid
+- Platform Profit
 
 Withdrawals
 
-* Pending Withdrawals
-* Completed Withdrawals
+- Pending Withdrawals
+- Completed Withdrawals
 
 ---
 
@@ -278,8 +278,8 @@ Admin only.
 
 Never expose:
 
-* Other user balances
-* Other user financial details
+- Other user balances
+- Other user financial details
 
 ---
 
@@ -287,16 +287,16 @@ Never expose:
 
 Dashboard page should:
 
-* Load quickly
-* Display summary cards
-* Show recent activities
+- Load quickly
+- Display summary cards
+- Show recent activities
 
 ---
 
 Dashboard must not:
 
-* Perform business calculations
-* Store financial state
+- Perform business calculations
+- Store financial state
 
 ---
 
@@ -322,9 +322,9 @@ If dashboard metrics change:
 
 Update:
 
-* product-requirements.md
-* api-specification.md
-* user-flows.md
+- product-requirements.md
+- api-specification.md
+- user-flows.md
 
 ---
 
