@@ -81,4 +81,53 @@ public interface IOrderRepository
     /// Persists changes to an existing order.
     /// </summary>
     Task UpdateAsync(Order order, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets aggregated order statistics for the admin dashboard.
+    /// </summary>
+    Task<AdminOrderStatistics> GetAdminStatisticsAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets aggregated revenue statistics for the admin dashboard.
+    /// </summary>
+    Task<AdminRevenueStatistics> GetAdminRevenueStatisticsAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets a paginated list of orders for admin management.
+    /// </summary>
+    Task<(IReadOnlyList<Order> Items, int TotalCount)> GetPagedForAdminAsync(
+        int page,
+        int pageSize,
+        string? orderId,
+        string? user,
+        OrderStatus? status,
+        DateTime? fromDate,
+        DateTime? toDate,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets an order by identifier for admin detail views.
+    /// </summary>
+    Task<Order?> GetByIdForAdminAsync(Guid id, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets monthly order counts for the admin dashboard chart.
+    /// </summary>
+    Task<IReadOnlyList<MonthlyOrderCount>> GetMonthlyOrderCountsAsync(
+        int monthCount,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets monthly platform revenue totals for the admin dashboard chart.
+    /// </summary>
+    Task<IReadOnlyList<MonthlyRevenueTotal>> GetMonthlyRevenueTotalsAsync(
+        int monthCount,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the most recent orders across the platform for admin activity widgets.
+    /// </summary>
+    Task<IReadOnlyList<Order>> GetRecentForAdminAsync(
+        int count,
+        CancellationToken cancellationToken);
 }

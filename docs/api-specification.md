@@ -394,6 +394,72 @@ Admin only
 
 ---
 
+# ADMIN DASHBOARD
+
+## Get Dashboard Summary
+
+GET /admin/dashboard
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "totalUsers": 120,
+    "activeUsers": 100,
+    "suspendedUsers": 15,
+    "totalOrders": 500,
+    "pendingOrders": 80,
+    "approvedOrders": 350,
+    "rejectedOrders": 70,
+    "totalWithdrawals": 45,
+    "pendingWithdrawals": 12,
+    "completedWithdrawals": 28,
+    "totalCommission": 10000000,
+    "totalCashbackPaid": 8000000,
+    "platformRevenue": 2000000,
+    "ordersByMonth": [
+      { "year": 2026, "month": 1, "orderCount": 40 }
+    ],
+    "revenueByMonth": [
+      { "year": 2026, "month": 1, "revenueAmount": 500000 }
+    ],
+    "recentUsers": [
+      {
+        "id": "uuid",
+        "email": "user@gmail.com",
+        "fullName": "John Doe",
+        "status": 1,
+        "statusName": "Active",
+        "createdAt": "2026-01-01T00:00:00Z"
+      }
+    ],
+    "recentOrders": [
+      {
+        "id": "uuid",
+        "orderCode": "ORDER-12345",
+        "userEmail": "user@gmail.com",
+        "status": 2,
+        "statusName": "Approved",
+        "cashbackAmount": 80000,
+        "createdAt": "2026-01-01T00:00:00Z"
+      }
+    ],
+    "recentWithdrawals": [
+      {
+        "id": "uuid",
+        "userEmail": "user@gmail.com",
+        "amount": 100000,
+        "status": 1,
+        "statusName": "Pending",
+        "requestedAt": "2026-01-01T00:00:00Z"
+      }
+    ]
+  }
+}
+
+---
+
 # ADMIN USERS
 
 ## Get Users
@@ -404,13 +470,28 @@ Query Parameters
 
 ?page=1
 &pageSize=20
+&email=search@example.com
+&name=John
+&status=1
 
 Response
 
 {
   "success": true,
   "data": {
-    "items": []
+    "items": [
+      {
+        "id": "uuid",
+        "email": "user@gmail.com",
+        "fullName": "John Doe",
+        "role": 1,
+        "status": 1,
+        "createdAt": "2026-01-01T00:00:00Z"
+      }
+    ],
+    "totalCount": 120,
+    "page": 1,
+    "pageSize": 20
   }
 }
 
@@ -424,7 +505,71 @@ Response
 
 {
   "success": true,
-  "data": {}
+  "data": {
+    "profile": {
+      "id": "uuid",
+      "email": "user@gmail.com",
+      "fullName": "John Doe",
+      "avatarUrl": "https://...",
+      "role": 1,
+      "status": 1,
+      "availableBalance": 100000,
+      "pendingBalance": 50000,
+      "lifetimeCashback": 350000,
+      "lastLoginAt": "2026-01-01T00:00:00Z",
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    "orderSummary": {
+      "totalOrders": 12,
+      "pendingOrders": 2,
+      "approvedOrders": 8,
+      "rejectedOrders": 2,
+      "totalCommission": 500000,
+      "totalCashback": 400000
+    },
+    "withdrawalSummary": {
+      "totalWithdrawals": 3,
+      "pendingWithdrawals": 1,
+      "approvedWithdrawals": 0,
+      "rejectedWithdrawals": 0,
+      "completedWithdrawals": 2,
+      "totalWithdrawn": 150000
+    }
+  }
+}
+
+---
+
+## Suspend User
+
+POST /admin/users/{id}/suspend
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "status": 2,
+    "statusName": "Suspended"
+  }
+}
+
+---
+
+## Activate User
+
+POST /admin/users/{id}/activate
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "status": 1,
+    "statusName": "Active"
+  }
 }
 
 ---
@@ -435,10 +580,20 @@ Response
 
 GET /admin/orders
 
+Query Parameters
+
+?page=1
+&pageSize=20
+&orderId=ORDER-12345
+&user=john@example.com
+&status=1
+&fromDate=2026-01-01
+&toDate=2026-01-31
+
 Filters
 
-- UserId
-- Merchant
+- OrderId
+- User
 - Status
 - Date Range
 
@@ -447,7 +602,25 @@ Response
 {
   "success": true,
   "data": {
-    "items": []
+    "items": [
+      {
+        "id": "uuid",
+        "orderCode": "ORDER-12345",
+        "user": {
+          "id": "uuid",
+          "email": "user@gmail.com",
+          "fullName": "John Doe"
+        },
+        "commissionAmount": 100000,
+        "cashbackAmount": 80000,
+        "status": 2,
+        "statusName": "Approved",
+        "createdAt": "2026-01-01T00:00:00Z"
+      }
+    ],
+    "totalCount": 500,
+    "page": 1,
+    "pageSize": 20
   }
 }
 
@@ -461,7 +634,23 @@ Response
 
 {
   "success": true,
-  "data": {}
+  "data": {
+    "id": "uuid",
+    "orderCode": "ORDER-12345",
+    "user": {
+      "id": "uuid",
+      "email": "user@gmail.com",
+      "fullName": "John Doe"
+    },
+    "merchant": "Shopee",
+    "orderAmount": 500000,
+    "commissionAmount": 100000,
+    "cashbackAmount": 80000,
+    "platformProfit": 20000,
+    "status": 2,
+    "statusName": "Approved",
+    "createdAt": "2026-01-01T00:00:00Z"
+  }
 }
 
 ---
@@ -472,12 +661,65 @@ Response
 
 GET /admin/withdrawals
 
+Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| page | int | Page number (default: 1) |
+| pageSize | int | Items per page (default: 20, max: 100) |
+| user | string | Search by user email or name |
+| status | int | Filter by withdrawal status |
+
 Response
 
 {
   "success": true,
   "data": {
-    "items": []
+    "items": [
+      {
+        "id": "uuid",
+        "user": {
+          "id": "uuid",
+          "email": "user@gmail.com",
+          "fullName": "John Doe"
+        },
+        "amount": 100000,
+        "status": 1,
+        "statusName": "Pending",
+        "requestedAt": "2026-01-01T00:00:00Z"
+      }
+    ],
+    "totalCount": 1,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+
+---
+
+## Get Withdrawal Detail
+
+GET /admin/withdrawals/{id}
+
+Response
+
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "user": {
+      "id": "uuid",
+      "email": "user@gmail.com",
+      "fullName": "John Doe"
+    },
+    "amount": 100000,
+    "bankName": "Vietcombank",
+    "bankAccountNumber": "1234567890",
+    "bankAccountHolder": "John Doe",
+    "status": 1,
+    "statusName": "Pending",
+    "requestedAt": "2026-01-01T00:00:00Z",
+    "processedAt": null
   }
 }
 

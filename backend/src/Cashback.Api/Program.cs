@@ -25,8 +25,14 @@ if (!app.Environment.IsDevelopment())
 app.UseCors(CorsExtensions.FrontendPolicy);
 
 app.UseAuthentication();
+app.UseMiddleware<AdminOnlyMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+/// <summary>
+/// Entry point type for integration test host bootstrapping.
+/// </summary>
+public partial class Program;

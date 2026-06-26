@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<ICashbackService, CashbackService>();
         services.AddScoped<IEarningsService, EarningsService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         services.AddScoped<IOrderSynchronizationService, OrderSynchronizationService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<IBalanceService, BalanceService>();

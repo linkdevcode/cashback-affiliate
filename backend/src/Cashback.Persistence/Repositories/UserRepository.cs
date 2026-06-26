@@ -30,6 +30,13 @@ public class UserRepository : IUserRepository
     }
 
     /// <inheritdoc/>
+    public async Task<User?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(user => user.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc/>
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
         return await _context.Users
@@ -67,5 +74,70 @@ public class UserRepository : IUserRepository
     {
         _context.Users.Update(user);
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<AdminUserStatistics> GetAdminStatisticsAsync(CancellationToken cancellationToken)
+    {
+        var users = _context.Users.AsNoTracking();
+
+        return new AdminUserStatistics(
+            await users.CountAsync(user => user.Status != UserStatus.Deleted, cancellationToken),
+            await users.CountAsync(user => user.Status == UserStatus.Active, cancellationToken),
+            await users.CountAsync(user => user.Status == UserStatus.Suspended, cancellationToken));
+    }
+
+    /// <inheritdoc/>
+    public async Task<(IReadOnlyList<User> Items, int TotalCount)> GetPagedForAdminAsync(
+        int page,
+        int pageSize,
+        string? email,
+        string? name,
+        UserStatus? status,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.Users
+            .AsNoTracking()
+            .Where(user => user.Status != UserStatus.Deleted);
+
+        if (status.HasValue)
+        {
+            query = query.Where(user => user.Status == status.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var emailTerm = $"%{email.Trim()}%";
+            query = query.Where(user => EF.Functions.ILike(user.Email, emailTerm));
+        }
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var nameTerm = $"%{name.Trim()}%";
+            query = query.Where(user => EF.Functions.ILike(user.FullName, nameTerm));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(user => user.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<User>> GetRecentForAdminAsync(
+        int count,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Status != UserStatus.Deleted)
+            .OrderByDescending(user => user.CreatedAt)
+            .Take(count)
+            .ToListAsync(cancellationToken);
     }
 }

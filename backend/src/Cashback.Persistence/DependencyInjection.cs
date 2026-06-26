@@ -22,8 +22,19 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
 
+        var useSqlite = bool.TryParse(configuration["UseSqliteForTests"], out var useSqliteValue)
+            && useSqliteValue;
+
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        {
+            if (useSqlite)
+            {
+                options.UseSqlite(connectionString);
+                return;
+            }
+
+            options.UseNpgsql(connectionString);
+        });
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

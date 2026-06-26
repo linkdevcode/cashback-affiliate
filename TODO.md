@@ -286,38 +286,92 @@ Status Legend
 
 # EPIC 8 - Admin Module
 
+## Feature 8.0 - Admin Module Foundation
+
+### Backend
+
+* [x] Admin Authorization Policy
+* [x] Admin Only Middleware
+* [x] Admin Route Protection
+* [x] AdminControllerBase
+* [x] Admin Authorization Integration Tests
+
+---
+
 ## Feature 8.1 - Admin Dashboard
 
-* [ ] User Statistics
-* [ ] Order Statistics
-* [ ] Withdrawal Statistics
-* [ ] Revenue Statistics
+### Backend
+
+* [x] User Statistics
+* [x] Order Statistics
+* [x] Withdrawal Statistics
+* [x] Revenue Statistics
+* [x] Orders By Month
+* [x] Revenue By Month
+* [x] Recent Activities
+
+### Frontend
+
+* [x] Admin Dashboard Page
+* [x] Statistics Cards
+* [x] Orders By Month Chart
+* [x] Revenue By Month Chart
+* [x] Recent Users Widget
+* [x] Recent Orders Widget
+* [x] Recent Withdrawals Widget
 
 ---
 
 ## Feature 8.2 - User Management
 
-* [ ] Users List
-* [ ] User Details
-* [ ] Suspend User
-* [ ] Activate User
+### Backend
+
+* [x] Users List
+* [x] User Details
+* [x] Suspend User
+* [x] Activate User
+
+### Frontend
+
+* [x] Users Table Page
+* [x] User Detail Modal
+* [x] Suspend/Activate Actions
 
 ---
 
 ## Feature 8.3 - Order Management
 
-* [ ] Orders List
-* [ ] Order Search
-* [ ] Order Filters
+### Backend
+
+* [x] Orders List API
+* [x] Order Detail API
+* [x] Order Search
+* [x] Order Filters
+
+### Frontend
+
+* [x] Admin Orders Page
+* [x] Order Filters
+* [x] Order Search
 
 ---
 
 ## Feature 8.4 - Withdrawal Management
 
-* [ ] Withdrawal List
-* [ ] Approve Action
-* [ ] Reject Action
-* [ ] Complete Action
+### Backend
+
+* [x] Withdrawal List API
+* [x] Withdrawal Detail API
+* [x] Approve Action
+* [x] Reject Action
+* [x] Complete Action
+
+### Frontend
+
+* [x] Admin Withdrawals Page
+* [x] Status Filter
+* [x] User Search
+* [x] Approve/Reject/Complete Actions
 
 ---
 
@@ -461,9 +515,10 @@ Status Legend
 
 ## Admin
 
-* [ ] Admin Dashboard
-* [ ] Withdrawal Approval
-* [ ] User Management
+* [x] Admin Dashboard
+* [x] Withdrawal Approval
+* [x] User Management
+* [x] Order Management
 
 ---
 

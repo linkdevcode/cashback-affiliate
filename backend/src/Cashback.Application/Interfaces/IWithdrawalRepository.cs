@@ -75,4 +75,40 @@ public interface IWithdrawalRepository
         Withdrawal withdrawal,
         Transaction transaction,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets aggregated withdrawal statistics for the admin dashboard.
+    /// </summary>
+    Task<AdminWithdrawalStatistics> GetAdminStatisticsAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets aggregated withdrawal statistics for a user.
+    /// </summary>
+    Task<WithdrawalUserSummary> GetUserSummaryAsync(
+        Guid userId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets paginated withdrawals for admin management.
+    /// </summary>
+    Task<(IReadOnlyList<Withdrawal> Items, int TotalCount)> GetPagedForAdminAsync(
+        int page,
+        int pageSize,
+        string? user,
+        WithdrawalStatus? status,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets a withdrawal by identifier for admin detail views.
+    /// </summary>
+    Task<Withdrawal?> GetByIdForAdminAsync(
+        Guid id,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the most recent withdrawals across the platform for admin activity widgets.
+    /// </summary>
+    Task<IReadOnlyList<Withdrawal>> GetRecentForAdminAsync(
+        int count,
+        CancellationToken cancellationToken);
 }

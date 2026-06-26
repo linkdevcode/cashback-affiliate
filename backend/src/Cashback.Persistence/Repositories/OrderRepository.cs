@@ -182,6 +182,190 @@ public class OrderRepository : IOrderRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc/>
+    public async Task<AdminOrderStatistics> GetAdminStatisticsAsync(CancellationToken cancellationToken)
+    {
+        var orders = _context.Orders.AsNoTracking();
+
+        return new AdminOrderStatistics(
+            await orders.CountAsync(cancellationToken),
+            await orders.CountAsync(order => order.Status == OrderStatus.Pending, cancellationToken),
+            await orders.CountAsync(order => order.Status == OrderStatus.Approved, cancellationToken),
+            await orders.CountAsync(order => order.Status == OrderStatus.Rejected, cancellationToken));
+    }
+
+    /// <inheritdoc/>
+    public async Task<AdminRevenueStatistics> GetAdminRevenueStatisticsAsync(CancellationToken cancellationToken)
+    {
+        var approvedOrders = _context.Orders
+            .AsNoTracking()
+            .Where(order => order.Status == OrderStatus.Approved);
+
+        return new AdminRevenueStatistics(
+            await approvedOrders.SumAsync(order => order.CommissionAmount, cancellationToken),
+            await approvedOrders.SumAsync(order => order.CashbackAmount, cancellationToken),
+            await approvedOrders.SumAsync(order => order.PlatformProfit, cancellationToken));
+    }
+
+    /// <inheritdoc/>
+    public async Task<(IReadOnlyList<Order> Items, int TotalCount)> GetPagedForAdminAsync(
+        int page,
+        int pageSize,
+        string? orderId,
+        string? user,
+        OrderStatus? status,
+        DateTime? fromDate,
+        DateTime? toDate,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.Orders
+            .AsNoTracking()
+            .Include(order => order.User)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(orderId))
+        {
+            var orderIdTerm = $"%{orderId.Trim()}%";
+            query = query.Where(order => EF.Functions.ILike(order.NetworkOrderId, orderIdTerm));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user))
+        {
+            var userTerm = $"%{user.Trim()}%";
+            query = query.Where(order =>
+                EF.Functions.ILike(order.User.Email, userTerm) ||
+                EF.Functions.ILike(order.User.FullName, userTerm));
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(order => order.Status == status.Value);
+        }
+
+        if (fromDate.HasValue)
+        {
+            var fromUtc = DateTime.SpecifyKind(fromDate.Value.Date, DateTimeKind.Utc);
+            query = query.Where(order => order.CreatedAt >= fromUtc);
+        }
+
+        if (toDate.HasValue)
+        {
+            var toExclusiveUtc = DateTime.SpecifyKind(toDate.Value.Date.AddDays(1), DateTimeKind.Utc);
+            query = query.Where(order => order.CreatedAt < toExclusiveUtc);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(order => order.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Order?> GetByIdForAdminAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _context.Orders
+            .AsNoTracking()
+            .Include(order => order.User)
+            .FirstOrDefaultAsync(order => order.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<MonthlyOrderCount>> GetMonthlyOrderCountsAsync(
+        int monthCount,
+        CancellationToken cancellationToken)
+    {
+        var startMonth = GetChartStartMonth(monthCount);
+
+        var grouped = await _context.Orders
+            .AsNoTracking()
+            .Where(order => order.CreatedAt >= startMonth)
+            .GroupBy(order => new { order.CreatedAt.Year, order.CreatedAt.Month })
+            .Select(group => new MonthlyOrderCount(
+                group.Key.Year,
+                group.Key.Month,
+                group.Count()))
+            .ToListAsync(cancellationToken);
+
+        return FillMonthlySeries(
+            startMonth,
+            monthCount,
+            (year, month) => grouped.FirstOrDefault(item => item.Year == year && item.Month == month)
+                ?? new MonthlyOrderCount(year, month, 0));
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<MonthlyRevenueTotal>> GetMonthlyRevenueTotalsAsync(
+        int monthCount,
+        CancellationToken cancellationToken)
+    {
+        var startMonth = GetChartStartMonth(monthCount);
+
+        var grouped = await _context.Orders
+            .AsNoTracking()
+            .Where(order =>
+                order.Status == OrderStatus.Approved &&
+                order.CreatedAt >= startMonth)
+            .GroupBy(order => new { order.CreatedAt.Year, order.CreatedAt.Month })
+            .Select(group => new MonthlyRevenueTotal(
+                group.Key.Year,
+                group.Key.Month,
+                group.Sum(order => order.PlatformProfit)))
+            .ToListAsync(cancellationToken);
+
+        return FillMonthlySeries(
+            startMonth,
+            monthCount,
+            (year, month) => grouped.FirstOrDefault(item => item.Year == year && item.Month == month)
+                ?? new MonthlyRevenueTotal(year, month, 0m));
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Order>> GetRecentForAdminAsync(
+        int count,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Orders
+            .AsNoTracking()
+            .Include(order => order.User)
+            .OrderByDescending(order => order.CreatedAt)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets the first day of the earliest month included in chart queries.
+    /// </summary>
+    private static DateTime GetChartStartMonth(int monthCount)
+    {
+        var utcNow = DateTime.UtcNow;
+        return new DateTime(utcNow.Year, utcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc)
+            .AddMonths(-(monthCount - 1));
+    }
+
+    /// <summary>
+    /// Builds a continuous monthly series including zero-value months.
+    /// </summary>
+    private static IReadOnlyList<T> FillMonthlySeries<T>(
+        DateTime startMonth,
+        int monthCount,
+        Func<int, int, T> createMissing)
+    {
+        var results = new List<T>(monthCount);
+
+        for (var index = 0; index < monthCount; index++)
+        {
+            var monthDate = startMonth.AddMonths(index);
+            results.Add(createMissing(monthDate.Year, monthDate.Month));
+        }
+
+        return results;
+    }
+
     /// <summary>
     /// Applies sorting to an order query.
     /// </summary>

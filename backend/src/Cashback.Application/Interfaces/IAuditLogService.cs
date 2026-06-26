@@ -30,4 +30,15 @@ public interface IAuditLogService
         WithdrawalStatus newStatus,
         string? reason,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Records a user status change audit event.
+    /// </summary>
+    Task LogUserStatusChangeAsync(
+        Guid adminUserId,
+        Guid targetUserId,
+        AuditAction action,
+        UserStatus previousStatus,
+        UserStatus newStatus,
+        CancellationToken cancellationToken);
 }

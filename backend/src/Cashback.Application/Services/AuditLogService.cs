@@ -73,4 +73,29 @@ public sealed class AuditLogService : IAuditLogService
 
         await _auditLogRepository.AddAsync(auditLog, cancellationToken);
     }
+
+    /// <inheritdoc/>
+    public async Task LogUserStatusChangeAsync(
+        Guid adminUserId,
+        Guid targetUserId,
+        AuditAction action,
+        UserStatus previousStatus,
+        UserStatus newStatus,
+        CancellationToken cancellationToken)
+    {
+        var metadata = JsonSerializer.Serialize(new
+        {
+            previousStatus = previousStatus.ToString(),
+            newStatus = newStatus.ToString()
+        });
+
+        var auditLog = AuditLog.Create(
+            adminUserId,
+            action,
+            "User",
+            targetUserId,
+            metadata);
+
+        await _auditLogRepository.AddAsync(auditLog, cancellationToken);
+    }
 }

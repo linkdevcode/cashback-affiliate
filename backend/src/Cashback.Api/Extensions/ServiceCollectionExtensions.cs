@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddOpenApi();
 
         services.AddJwtAuthentication(configuration);
+        services.AddAdminAuthorizationPolicies();
 
         services.AddFrontendCors();
 

@@ -1,7 +1,7 @@
-using System.Text;
+using Cashback.Api.Authentication;
 using Cashback.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 
 namespace Cashback.Api.Extensions;
 
@@ -26,23 +26,9 @@ public static class AuthenticationExtensions
         }
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidAudience = jwtOptions.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtOptions.Secret)),
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
+            .AddJwtBearer();
 
-        services.AddAuthorization();
+        services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 
         return services;
     }

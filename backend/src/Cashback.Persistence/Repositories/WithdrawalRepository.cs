@@ -157,4 +157,108 @@ public class WithdrawalRepository : IWithdrawalRepository
         await _context.Transactions.AddAsync(transaction, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    /// <inheritdoc/>
+    public async Task<AdminWithdrawalStatistics> GetAdminStatisticsAsync(CancellationToken cancellationToken)
+    {
+        var withdrawals = _context.Withdrawals.AsNoTracking();
+
+        return new AdminWithdrawalStatistics(
+            await withdrawals.CountAsync(cancellationToken),
+            await withdrawals.CountAsync(
+                withdrawal => withdrawal.Status == WithdrawalStatus.Pending,
+                cancellationToken),
+            await withdrawals.CountAsync(
+                withdrawal => withdrawal.Status == WithdrawalStatus.Completed,
+                cancellationToken));
+    }
+
+    /// <inheritdoc/>
+    public async Task<WithdrawalUserSummary> GetUserSummaryAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var withdrawals = _context.Withdrawals
+            .AsNoTracking()
+            .Where(withdrawal => withdrawal.UserId == userId);
+
+        return new WithdrawalUserSummary(
+            await withdrawals.CountAsync(cancellationToken),
+            await withdrawals.CountAsync(
+                withdrawal => withdrawal.Status == WithdrawalStatus.Pending,
+                cancellationToken),
+            await withdrawals.CountAsync(
+                withdrawal => withdrawal.Status == WithdrawalStatus.Approved,
+                cancellationToken),
+            await withdrawals.CountAsync(
+                withdrawal => withdrawal.Status == WithdrawalStatus.Rejected,
+                cancellationToken),
+            await withdrawals.CountAsync(
+                withdrawal => withdrawal.Status == WithdrawalStatus.Completed,
+                cancellationToken),
+            await withdrawals
+                .Where(withdrawal => withdrawal.Status == WithdrawalStatus.Completed)
+                .SumAsync(withdrawal => withdrawal.Amount, cancellationToken));
+    }
+
+    /// <inheritdoc/>
+    public async Task<(IReadOnlyList<Withdrawal> Items, int TotalCount)> GetPagedForAdminAsync(
+        int page,
+        int pageSize,
+        string? user,
+        WithdrawalStatus? status,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.Withdrawals
+            .AsNoTracking()
+            .Include(withdrawal => withdrawal.User)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(user))
+        {
+            var userTerm = $"%{user.Trim()}%";
+            query = query.Where(withdrawal =>
+                EF.Functions.ILike(withdrawal.User.Email, userTerm) ||
+                EF.Functions.ILike(withdrawal.User.FullName, userTerm));
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(withdrawal => withdrawal.Status == status.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(withdrawal => withdrawal.RequestedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Withdrawal?> GetByIdForAdminAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Withdrawals
+            .AsNoTracking()
+            .Include(withdrawal => withdrawal.User)
+            .FirstOrDefaultAsync(withdrawal => withdrawal.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Withdrawal>> GetRecentForAdminAsync(
+        int count,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Withdrawals
+            .AsNoTracking()
+            .Include(withdrawal => withdrawal.User)
+            .OrderByDescending(withdrawal => withdrawal.RequestedAt)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+    }
 }
