@@ -42,7 +42,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasConversion<int>()
             .IsRequired();
 
-        builder.Property(user => user.IsActive)
+        builder.Property(user => user.Status)
+            .HasConversion<int>()
             .IsRequired();
 
         builder.Property(user => user.EmailVerified)
@@ -74,5 +75,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(user => user.ProviderUserId);
 
         builder.HasIndex(user => user.Role);
+
+        builder.HasIndex(user => user.Status);
     }
 }

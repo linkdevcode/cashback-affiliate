@@ -44,9 +44,9 @@ public class User : AuditableEntity
     public UserRole Role { get; private set; }
 
     /// <summary>
-    /// Indicates whether the user account is active.
+    /// Current lifecycle status of the user account.
     /// </summary>
-    public bool IsActive { get; private set; }
+    public UserStatus Status { get; private set; }
 
     /// <summary>
     /// Indicates whether the user email has been verified.
@@ -97,4 +97,103 @@ public class User : AuditableEntity
     /// Notifications sent to the user.
     /// </summary>
     public ICollection<Notification> Notifications { get; private set; } = [];
+
+    /// <summary>
+    /// Refresh tokens issued to the user.
+    /// </summary>
+    public ICollection<UserRefreshToken> RefreshTokens { get; private set; } = [];
+
+    /// <summary>
+    /// Required by Entity Framework.
+    /// </summary>
+    private User()
+    {
+    }
+
+    /// <summary>
+    /// Creates a new user account.
+    /// </summary>
+    public static User Create(
+        string email,
+        string fullName,
+        AuthProvider provider,
+        string? providerUserId = null,
+        string? avatarUrl = null,
+        UserRole role = UserRole.User)
+    {
+        var now = DateTime.UtcNow;
+
+        return new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            FullName = fullName,
+            AvatarUrl = avatarUrl,
+            Provider = provider,
+            ProviderUserId = providerUserId,
+            Role = role,
+            Status = UserStatus.Active,
+            EmailVerified = provider != AuthProvider.Local,
+            AvailableBalance = 0,
+            PendingBalance = 0,
+            LifetimeCashback = 0,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+    }
+
+    /// <summary>
+    /// Updates the user profile display information.
+    /// </summary>
+    public void UpdateProfile(string fullName, string? avatarUrl)
+    {
+        FullName = fullName;
+        AvatarUrl = avatarUrl;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Synchronizes profile data from Google and records login.
+    /// </summary>
+    public void SyncGoogleProfile(string fullName, string? avatarUrl)
+    {
+        FullName = fullName;
+        AvatarUrl = avatarUrl;
+        RecordLogin();
+    }
+
+    /// <summary>
+    /// Indicates whether the user can authenticate.
+    /// </summary>
+    public bool CanLogin()
+    {
+        return Status == UserStatus.Active;
+    }
+
+    /// <summary>
+    /// Records a successful login timestamp.
+    /// </summary>
+    public void RecordLogin()
+    {
+        LastLoginAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Suspends the user account.
+    /// </summary>
+    public void Suspend()
+    {
+        Status = UserStatus.Suspended;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Reactivates a suspended user account.
+    /// </summary>
+    public void Activate()
+    {
+        Status = UserStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

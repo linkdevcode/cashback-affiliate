@@ -266,9 +266,6 @@ namespace Cashback.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -291,6 +288,9 @@ namespace Cashback.Persistence.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -303,7 +303,42 @@ namespace Cashback.Persistence.Migrations
 
                     b.HasIndex("Role");
 
+                    b.HasIndex("Status");
+
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Cashback.Domain.Entities.UserRefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserRefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Cashback.Domain.Entities.WebhookEvent", b =>
@@ -460,6 +495,17 @@ namespace Cashback.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Cashback.Domain.Entities.UserRefreshToken", b =>
+                {
+                    b.HasOne("Cashback.Domain.Entities.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Cashback.Domain.Entities.WithdrawRequest", b =>
                 {
                     b.HasOne("Cashback.Domain.Entities.User", "User")
@@ -490,6 +536,8 @@ namespace Cashback.Persistence.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("Orders");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("WithdrawRequests");
                 });

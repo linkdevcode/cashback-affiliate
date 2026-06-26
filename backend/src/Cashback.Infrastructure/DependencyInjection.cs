@@ -1,3 +1,7 @@
+using Cashback.Application.Interfaces;
+using Cashback.Infrastructure.Clients;
+using Cashback.Infrastructure.Services;
+using Cashback.Infrastructure.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,6 +19,12 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.Configure<GoogleOptions>(configuration.GetSection(GoogleOptions.SectionName));
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+
+        services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+
         return services;
     }
 }

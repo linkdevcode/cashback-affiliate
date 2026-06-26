@@ -56,28 +56,26 @@ Status Legend
 
 ### Backend
 
-* [ ] Configure Google OAuth
-* [ ] Create Login Endpoint
-* [ ] Generate JWT
-* [ ] Generate Refresh Token
-* [ ] Store Refresh Token
+* [x] Configure Google OAuth
+* [x] Create Login Endpoint
+* [x] Generate JWT
+* [x] Generate Refresh Token
+* [x] Store Refresh Token
 
 ### Frontend
 
-* [ ] Login Page
-* [ ] Google Login Button
-* [ ] Auth Context
-* [ ] Route Protection
+* [x] Login Page
+* [x] Google Login Button
+* [x] Auth Context
+* [x] Route Protection
 
 ---
 
 ## Feature 2.2 - User Management
 
-* [ ] User Entity
-* [ ] User Repository
-* [ ] Get Current User API
-* [ ] Update Profile API
-* [ ] User Dashboard Summary API
+* [x] User Entity
+* [x] User Repository
+* [x] Get Current User API
 
 ---
 
@@ -194,6 +192,8 @@ Status Legend
 * [ ] Total Cashback
 * [ ] Total Withdrawn
 * [ ] Recent Orders
+* [ ] Update Profile API
+* [ ] User Dashboard Summary API
 
 ---
 

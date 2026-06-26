@@ -68,7 +68,7 @@ Table: Users
 | Provider         | VARCHAR(50)   | No       |
 | ProviderUserId   | VARCHAR(255)  | Yes      |
 | Role             | VARCHAR(20)   | No       |
-| IsActive         | BOOLEAN       | No       |
+| Status           | INTEGER       | No       |
 | EmailVerified    | BOOLEAN       | No       |
 | AvailableBalance | DECIMAL(18,2) | No       |
 | PendingBalance   | DECIMAL(18,2) | No       |
@@ -98,6 +98,30 @@ Local User
 Provider = Local
 
 PasswordHash = BCrypt Hash
+
+---
+
+# 3.1 UserRefreshTokens
+
+Purpose:
+
+Store JWT refresh tokens for session renewal.
+
+Table: UserRefreshTokens
+
+| Column    | Type         | Nullable |
+| --------- | ------------ | -------- |
+| Id        | UUID         | No       |
+| UserId    | UUID         | No       |
+| TokenHash | VARCHAR(255) | No       |
+| ExpiresAt | TIMESTAMP    | No       |
+| RevokedAt | TIMESTAMP    | Yes      |
+| CreatedAt | TIMESTAMP    | No       |
+
+Indexes:
+
+- TokenHash (Unique)
+- UserId
 
 ---
 

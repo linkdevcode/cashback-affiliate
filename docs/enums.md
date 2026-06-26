@@ -63,7 +63,48 @@ Admin
 
 ---
 
-# 2. AuthProvider
+# 2. UserStatus
+
+Purpose:
+
+Track user account lifecycle.
+
+Enum:
+
+```csharp
+public enum UserStatus
+{
+    Active = 1,
+    Suspended = 2,
+    Deleted = 3
+}
+```
+
+Database Value:
+
+| Value | Name      |
+| ----- | --------- |
+| 1     | Active    |
+| 2     | Suspended |
+| 3     | Deleted   |
+
+Description:
+
+Active
+
+Account can access platform features.
+
+Suspended
+
+Account cannot login or use platform features.
+
+Deleted
+
+Account is marked as deleted.
+
+---
+
+# 3. AuthProvider
 
 Purpose:
 
@@ -98,7 +139,7 @@ OAuth Login
 
 ---
 
-# 3. OrderStatus
+# 4. OrderStatus
 
 Purpose:
 
@@ -139,7 +180,7 @@ Cancelled, returned, or invalid order.
 
 ---
 
-# 4. WithdrawalStatus
+# 5. WithdrawalStatus
 
 Purpose:
 
@@ -186,7 +227,7 @@ Successfully transferred.
 
 ---
 
-# 5. TransactionType
+# 6. TransactionType
 
 Purpose:
 
@@ -245,7 +286,7 @@ Manual admin adjustment.
 
 ---
 
-# 6. AuditAction
+# 7. AuditAction
 
 Purpose:
 
@@ -278,7 +319,7 @@ Used for tracking system events.
 
 ---
 
-# 7. MerchantType
+# 8. MerchantType
 
 Purpose:
 

@@ -22,6 +22,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users => Set<User>();
 
     /// <summary>
+    /// User refresh tokens.
+    /// </summary>
+    public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
+
+    /// <summary>
     /// Generated affiliate links.
     /// </summary>
     public DbSet<AffiliateLink> AffiliateLinks => Set<AffiliateLink>();

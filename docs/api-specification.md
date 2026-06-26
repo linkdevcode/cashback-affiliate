@@ -113,9 +113,21 @@ Response
 
 ---
 
+# USERS MODULE
+
+Route
+
+/api/v1/users
+
+Authentication
+
+JWT Bearer Token
+
+---
+
 ## Get Current User
 
-GET /auth/me
+GET /users/me
 
 Response
 
@@ -125,9 +137,9 @@ Response
     "id": "uuid",
     "email": "user@gmail.com",
     "fullName": "John Doe",
+    "avatarUrl": "https://...",
     "role": 1,
-    "availableBalance": 100000,
-    "pendingBalance": 50000
+    "status": 1
   }
 }
 

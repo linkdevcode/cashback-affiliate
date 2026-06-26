@@ -1,4 +1,6 @@
 using Cashback.Application;
+using Cashback.Application.Interfaces;
+using Cashback.Api.Services;
 using Cashback.Infrastructure;
 using Cashback.Persistence;
 
@@ -18,6 +20,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddControllers();
         services.AddOpenApi();
+
+        services.AddJwtAuthentication(configuration);
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         services
             .AddApplication()
