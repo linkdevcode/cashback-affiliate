@@ -6,8 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cashback.Application;
 
+/// <summary>
+/// Application layer dependency injection configuration.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registers application layer services.
+    /// </summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         var assembly = Assembly.GetExecutingAssembly();

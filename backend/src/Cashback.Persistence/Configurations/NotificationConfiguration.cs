@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cashback.Persistence.Configurations;
 
+/// <summary>
+/// Entity Framework configuration for <see cref="Notification"/>.
+/// </summary>
 public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Notification> builder)
     {
         builder.ToTable("Notifications");

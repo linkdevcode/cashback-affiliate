@@ -4,8 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cashback.Persistence.Configurations;
 
+/// <summary>
+/// Entity Framework configuration for <see cref="SystemSetting"/>.
+/// </summary>
 public class SystemSettingConfiguration : IEntityTypeConfiguration<SystemSetting>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<SystemSetting> builder)
     {
         builder.ToTable("SystemSettings");

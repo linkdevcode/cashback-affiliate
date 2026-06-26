@@ -3,16 +3,23 @@ using MediatR;
 
 namespace Cashback.Application.Behaviors;
 
+/// <summary>
+/// MediatR pipeline behavior that validates requests using FluentValidation.
+/// </summary>
 public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
+    /// <summary>
+    /// Initializes a new instance of the validation behavior.
+    /// </summary>
     public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
     {
         _validators = validators;
     }
 
+    /// <inheritdoc/>
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,

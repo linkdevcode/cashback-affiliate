@@ -47,8 +47,6 @@ Status Legend
 * [x] Dockerfile Frontend
 * [x] docker-compose.yml
 * [x] Environment Configuration
-* [ ] Health Check Endpoint
-* [ ] CI/CD Pipeline
 
 ---
 
@@ -402,6 +400,8 @@ Status Legend
 
 ## Feature 14.2 - Deployment
 
+* [ ] Health Check Endpoint
+* [ ] CI/CD Pipeline
 * [ ] Production Environment
 * [ ] Database Migration Pipeline
 * [ ] Backup Strategy

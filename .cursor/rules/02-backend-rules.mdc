@@ -63,7 +63,61 @@ Avoid nested namespaces.
 
 ---
 
-# Async Rules
+# XML Documentation Rules
+
+All backend code must use XML documentation with `<summary>` only.
+
+Required for:
+
+- Classes
+- Interfaces
+- Interface methods
+- Properties
+- Public methods on concrete classes (when not implementing an interface member)
+
+Implementation rules:
+
+- Interface methods must be documented on the interface with `<summary>`
+- Implementations must use `/// <inheritdoc/>` for interface members
+- Override methods must use `/// <inheritdoc/>` when overriding a documented base member
+- Private methods must have their own `<summary>`
+
+Forbidden in summaries:
+
+- `<param>`
+- `<returns>`
+- `<remarks>`
+- `<exception>`
+
+Example interface:
+
+```csharp
+public interface IUserRepository
+{
+    /// <summary>
+    /// Gets a user by identifier.
+    /// </summary>
+    Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+}
+```
+
+Example implementation:
+
+```csharp
+/// <inheritdoc/>
+public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+```
+
+Example property:
+
+```csharp
+/// <summary>
+/// User email address.
+/// </summary>
+public string Email { get; private set; }
+```
+
+---
 
 All I/O operations must be async.
 

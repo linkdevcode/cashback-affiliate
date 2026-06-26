@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cashback.Persistence.Configurations;
 
+/// <summary>
+/// Entity Framework configuration for <see cref="User"/>.
+/// </summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("Users");

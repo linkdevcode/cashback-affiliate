@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cashback.Persistence.Configurations;
 
+/// <summary>
+/// Entity Framework configuration for <see cref="WebhookEvent"/>.
+/// </summary>
 public class WebhookEventConfiguration : IEntityTypeConfiguration<WebhookEvent>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<WebhookEvent> builder)
     {
         builder.ToTable("WebhookEvents");

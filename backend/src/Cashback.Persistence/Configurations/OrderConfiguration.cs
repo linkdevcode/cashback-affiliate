@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cashback.Persistence.Configurations;
 
+/// <summary>
+/// Entity Framework configuration for <see cref="Order"/>.
+/// </summary>
 public class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Order> builder)
     {
         builder.ToTable("Orders");

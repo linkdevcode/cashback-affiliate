@@ -4,8 +4,12 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Cashback.Persistence.Context;
 
+/// <summary>
+/// Design-time factory for creating the application database context during migrations.
+/// </summary>
 public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
+    /// <inheritdoc/>
     public ApplicationDbContext CreateDbContext(string[] args)
     {
         var connectionString =

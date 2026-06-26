@@ -71,6 +71,22 @@ Do not use JavaScript.
 
 ---
 
+# 2.1 XML Documentation (Backend)
+
+All backend classes, interface methods, and properties must use XML documentation with `<summary>` only.
+
+Rules:
+
+- Document classes and interfaces with `<summary>`
+- Document interface methods with `<summary>` on the interface
+- Use `/// <inheritdoc/>` on implementation methods that fulfill an interface or override a base member
+- Document private methods with their own `<summary>`
+- Do not use `<param>`, `<returns>`, `<remarks>`, or `<exception>`
+
+`GenerateDocumentationFile` is enabled for all backend projects.
+
+---
+
 # 3. Naming Conventions
 
 ## Classes

@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cashback.Persistence.Configurations;
 
+/// <summary>
+/// Entity Framework configuration for <see cref="AffiliateLink"/>.
+/// </summary>
 public class AffiliateLinkConfiguration : IEntityTypeConfiguration<AffiliateLink>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<AffiliateLink> builder)
     {
         builder.ToTable("AffiliateLinks");

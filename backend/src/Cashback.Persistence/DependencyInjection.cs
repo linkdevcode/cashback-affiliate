@@ -5,8 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cashback.Persistence;
 
+/// <summary>
+/// Persistence layer dependency injection configuration.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registers persistence services and database context.
+    /// </summary>
     public static IServiceCollection AddPersistence(
         this IServiceCollection services,
         IConfiguration configuration)

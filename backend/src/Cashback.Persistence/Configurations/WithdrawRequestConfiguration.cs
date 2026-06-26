@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cashback.Persistence.Configurations;
 
+/// <summary>
+/// Entity Framework configuration for <see cref="WithdrawRequest"/>.
+/// </summary>
 public class WithdrawRequestConfiguration : IEntityTypeConfiguration<WithdrawRequest>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<WithdrawRequest> builder)
     {
         builder.ToTable("WithdrawRequests");
