@@ -61,6 +61,11 @@ public class ApplicationDbContext : DbContext
     /// </summary>
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
+    /// <summary>
+    /// System audit log entries.
+    /// </summary>
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -21,7 +21,7 @@ public class WebhookEvent : BaseEntity
     /// <summary>
     /// Provider order identifier referenced by the event.
     /// </summary>
-    public string? ProviderOrderId { get; private set; }
+    public string ProviderOrderId { get; private set; } = null!;
 
     /// <summary>
     /// Raw webhook payload body.
@@ -47,4 +47,65 @@ public class WebhookEvent : BaseEntity
     /// UTC timestamp when the webhook was processed.
     /// </summary>
     public DateTime? ProcessedAt { get; private set; }
+
+    /// <summary>
+    /// Indicates whether the webhook event has already been processed.
+    /// </summary>
+    public bool IsAlreadyProcessed =>
+        Status is WebhookEventStatus.Processed or WebhookEventStatus.Ignored;
+
+    /// <summary>
+    /// Required by Entity Framework.
+    /// </summary>
+    private WebhookEvent()
+    {
+    }
+
+    /// <summary>
+    /// Creates a new webhook event in received status.
+    /// </summary>
+    public static WebhookEvent Create(
+        string provider,
+        string providerOrderId,
+        string payload,
+        string? eventId = null)
+    {
+        return new WebhookEvent
+        {
+            Id = Guid.NewGuid(),
+            Provider = provider,
+            ProviderOrderId = providerOrderId,
+            EventId = eventId,
+            Payload = payload,
+            Status = WebhookEventStatus.Received,
+            ReceivedAt = DateTime.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Marks the webhook event as successfully processed.
+    /// </summary>
+    public void MarkAsProcessed()
+    {
+        Status = WebhookEventStatus.Processed;
+        ProcessedAt = DateTime.UtcNow;
+        ErrorMessage = null;
+    }
+
+    /// <summary>
+    /// Marks the webhook event as currently being processed.
+    /// </summary>
+    public void MarkAsProcessing()
+    {
+        Status = WebhookEventStatus.Processing;
+    }
+
+    /// <summary>
+    /// Marks the webhook event as failed with an error message.
+    /// </summary>
+    public void MarkAsFailed(string errorMessage)
+    {
+        Status = WebhookEventStatus.Failed;
+        ErrorMessage = errorMessage;
+    }
 }

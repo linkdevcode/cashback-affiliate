@@ -1,5 +1,7 @@
 using System.Reflection;
 using Cashback.Application.Behaviors;
+using Cashback.Application.Interfaces;
+using Cashback.Application.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +28,12 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(assembly);
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+        services.AddScoped<IWebhookIdempotencyService, WebhookIdempotencyService>();
+        services.AddScoped<IWebhookProcessingService, WebhookProcessingService>();
+        services.AddScoped<IWebhookUserResolver, WebhookSub1UserResolver>();
+        services.AddScoped<IOrderSynchronizationService, OrderSynchronizationService>();
+        services.AddScoped<IAuditLogService, AuditLogService>();
 
         services.AddAutoMapper(assembly);
 

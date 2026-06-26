@@ -122,9 +122,9 @@ Status Legend
 
 ## Feature 4.1 - Order Domain
 
-* [ ] Order Entity
-* [ ] Order Repository
-* [ ] Order Status Enum
+* [x] Order Entity
+* [x] Order Repository
+* [x] Order Status Enum
 
 ---
 
@@ -159,27 +159,54 @@ Status Legend
 
 ### Backend
 
-* [ ] Webhook Endpoint
-* [ ] Request Validation
-* [ ] Signature Validation
-* [ ] DTO Mapping
+* [x] Webhook Endpoint
+* [x] Request Validation
+* [x] Signature Validation
+* [x] DTO Mapping
+
+### Security Layer
+
+* [x] IWebhookValidator
+* [x] AccesstradeWebhookValidator
+* [x] Webhook Security Middleware
+* [x] Secret Validation
+* [x] Signature Validation Placeholder
 
 ---
 
 ## Feature 5.2 - Idempotency
 
-* [ ] WebhookEvents Table
-* [ ] Duplicate Detection
-* [ ] Processed Event Tracking
+* [x] WebhookEvents Table
+* [x] Duplicate Detection
+* [x] Processed Event Tracking
+* [x] IWebhookEventRepository
+* [x] WebhookEventRepository
+* [x] WebhookIdempotencyService
 
 ---
 
 ## Feature 5.3 - Webhook Processing
 
-* [ ] Create Order From Webhook
-* [ ] Update Existing Order
-* [ ] Handle Order Approval
-* [ ] Handle Order Rejection
+* [x] Create Order From Webhook
+* [x] Update Existing Order
+* [x] Handle Order Approval
+* [x] Handle Order Rejection
+* [x] CreateOrderFromWebhookHandler
+* [x] WebhookProcessingService
+* [x] WebhookSub1UserResolver
+
+---
+
+## Feature 5.4 - Order Status Synchronization
+
+* [x] OrderApprovalHandler
+* [x] OrderRejectionHandler
+* [x] OrderPendingHandler
+* [x] OrderSynchronizationService
+* [x] Status Update Logic
+* [x] AuditLog Entity
+* [x] AuditLogService
+* [x] Integration Tests
 
 ---
 

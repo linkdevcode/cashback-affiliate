@@ -63,6 +63,43 @@ namespace Cashback.Persistence.Migrations
                     b.ToTable("AffiliateLinks", (string)null);
                 });
 
+            modelBuilder.Entity("Cashback.Domain.Entities.AuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Action")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("EntityName");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AuditLogs", (string)null);
+                });
+
             modelBuilder.Entity("Cashback.Domain.Entities.CommissionTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -363,6 +400,7 @@ namespace Cashback.Persistence.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("ProviderOrderId")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
@@ -381,6 +419,9 @@ namespace Cashback.Persistence.Migrations
                     b.HasIndex("ReceivedAt");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("Provider", "ProviderOrderId")
+                        .IsUnique();
 
                     b.ToTable("WebhookEvents", (string)null);
                 });

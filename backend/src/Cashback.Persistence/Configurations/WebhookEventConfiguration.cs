@@ -25,7 +25,8 @@ public class WebhookEventConfiguration : IEntityTypeConfiguration<WebhookEvent>
             .HasMaxLength(255);
 
         builder.Property(webhookEvent => webhookEvent.ProviderOrderId)
-            .HasMaxLength(255);
+            .HasMaxLength(255)
+            .IsRequired();
 
         builder.Property(webhookEvent => webhookEvent.Payload)
             .HasColumnType("text")
@@ -48,5 +49,8 @@ public class WebhookEventConfiguration : IEntityTypeConfiguration<WebhookEvent>
         builder.HasIndex(webhookEvent => webhookEvent.Status);
 
         builder.HasIndex(webhookEvent => webhookEvent.ReceivedAt);
+
+        builder.HasIndex(webhookEvent => new { webhookEvent.Provider, webhookEvent.ProviderOrderId })
+            .IsUnique();
     }
 }

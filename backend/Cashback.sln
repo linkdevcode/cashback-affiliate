@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cashback.Api", "src\Cashbac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cashback.Persistence", "src\Cashback.Persistence\Cashback.Persistence.csproj", "{B5EEF90A-5451-4FB6-A018-3CFBBE6ACCF3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cashback.IntegrationTests", "tests\Cashback.IntegrationTests\Cashback.IntegrationTests.csproj", "{AE145118-18A5-4683-98AE-C655FC4707E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +89,18 @@ Global
 		{B5EEF90A-5451-4FB6-A018-3CFBBE6ACCF3}.Release|x64.Build.0 = Release|Any CPU
 		{B5EEF90A-5451-4FB6-A018-3CFBBE6ACCF3}.Release|x86.ActiveCfg = Release|Any CPU
 		{B5EEF90A-5451-4FB6-A018-3CFBBE6ACCF3}.Release|x86.Build.0 = Release|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Debug|x64.Build.0 = Debug|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Debug|x86.Build.0 = Debug|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Release|x64.ActiveCfg = Release|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Release|x64.Build.0 = Release|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Release|x86.ActiveCfg = Release|Any CPU
+		{AE145118-18A5-4683-98AE-C655FC4707E6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,5 +111,6 @@ Global
 		{0C288989-A203-4CEB-9CC3-A1AB72B6BA13} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{B229C034-8BE1-4DF5-86BD-986D6EE8DC6D} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{B5EEF90A-5451-4FB6-A018-3CFBBE6ACCF3} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{AE145118-18A5-4683-98AE-C655FC4707E6} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

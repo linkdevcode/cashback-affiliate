@@ -40,6 +40,7 @@ services:
       Accesstrade__BaseUrl: ${ACCESSTRADE_BASE_URL:-https://api.accesstrade.vn}
       Accesstrade__Token: ${ACCESSTRADE_TOKEN:-}
       Accesstrade__CampaignId: ${ACCESSTRADE_CAMPAIGN_ID:-}
+      Accesstrade__WebhookSecret: ${ACCESSTRADE_WEBHOOK_SECRET:-}
     ports:
       - "${API_PORT:-5050}:8080"
     depends_on:

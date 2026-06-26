@@ -33,4 +33,9 @@ public interface IAffiliateLinkRepository
     /// Persists a new affiliate link.
     /// </summary>
     Task AddAsync(AffiliateLink affiliateLink, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the most recently created affiliate link for a Sub1 tracking value.
+    /// </summary>
+    Task<AffiliateLink?> GetLatestBySub1Async(string sub1, CancellationToken cancellationToken);
 }

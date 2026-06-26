@@ -4,6 +4,7 @@ using Cashback.Infrastructure.Clients;
 using Cashback.Infrastructure.Providers;
 using Cashback.Infrastructure.Services;
 using Cashback.Infrastructure.Settings;
+using Cashback.Infrastructure.Webhooks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -25,9 +26,13 @@ public static class DependencyInjection
         services.Configure<GoogleOptions>(configuration.GetSection(GoogleOptions.SectionName));
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<AccesstradeOptions>(configuration.GetSection(AccesstradeOptions.SectionName));
+        services.Configure<CashbackOptions>(configuration.GetSection(CashbackOptions.SectionName));
 
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddSingleton<IAccesstradeWebhookSettings, AccesstradeWebhookSettings>();
+        services.AddSingleton<ICashbackSettings, CashbackSettings>();
+        services.AddSingleton<IWebhookValidator, AccesstradeWebhookValidator>();
 
         services.AddHttpClient<IAffiliateProvider, AccesstradeProvider>((serviceProvider, client) =>
         {

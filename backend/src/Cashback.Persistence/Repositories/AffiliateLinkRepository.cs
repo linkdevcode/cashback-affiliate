@@ -67,4 +67,16 @@ public class AffiliateLinkRepository : IAffiliateLinkRepository
         await _context.AffiliateLinks.AddAsync(affiliateLink, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    /// <inheritdoc/>
+    public async Task<AffiliateLink?> GetLatestBySub1Async(
+        string sub1,
+        CancellationToken cancellationToken)
+    {
+        return await _context.AffiliateLinks
+            .AsNoTracking()
+            .Where(link => link.Sub1 == sub1)
+            .OrderByDescending(link => link.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

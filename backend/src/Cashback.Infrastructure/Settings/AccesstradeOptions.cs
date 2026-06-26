@@ -24,4 +24,9 @@ public sealed class AccesstradeOptions
     /// Default campaign identifier for link generation.
     /// </summary>
     public string CampaignId { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Shared secret for validating incoming webhook postbacks.
+    /// </summary>
+    public string WebhookSecret { get; init; } = string.Empty;
 }
