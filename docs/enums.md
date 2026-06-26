@@ -238,12 +238,11 @@ Enum:
 ```csharp
 public enum TransactionType
 {
-    CashbackPending = 1,
-    CashbackApproved = 2,
-    CashbackReversed = 3,
-    WithdrawalRequested = 4,
-    WithdrawalCompleted = 5,
-    Adjustment = 6
+    CashbackEarned = 1,
+    WithdrawalRequested = 2,
+    WithdrawalApproved = 3,
+    WithdrawalRejected = 4,
+    WithdrawalCompleted = 5
 }
 ```
 
@@ -251,38 +250,33 @@ Database Value:
 
 | Value | Name                |
 | ----- | ------------------- |
-| 1     | CashbackPending     |
-| 2     | CashbackApproved    |
-| 3     | CashbackReversed    |
-| 4     | WithdrawalRequested |
+| 1     | CashbackEarned      |
+| 2     | WithdrawalRequested |
+| 3     | WithdrawalApproved  |
+| 4     | WithdrawalRejected  |
 | 5     | WithdrawalCompleted |
-| 6     | Adjustment          |
 
 Description:
 
-CashbackPending
+CashbackEarned
 
-Commission detected but not approved.
-
-CashbackApproved
-
-Commission approved and added to balance.
-
-CashbackReversed
-
-Previously approved commission removed.
+Approved cashback credited to balance.
 
 WithdrawalRequested
 
-User submitted withdrawal request.
+Balance reserved for a withdrawal request.
+
+WithdrawalApproved
+
+Withdrawal accepted by admin.
+
+WithdrawalRejected
+
+Withdrawal denied and balance restored.
 
 WithdrawalCompleted
 
 Withdrawal paid successfully.
-
-Adjustment
-
-Manual admin adjustment.
 
 ---
 

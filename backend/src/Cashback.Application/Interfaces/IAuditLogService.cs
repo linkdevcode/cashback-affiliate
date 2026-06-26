@@ -18,4 +18,16 @@ public interface IAuditLogService
         OrderStatus newStatus,
         Guid webhookEventId,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Records a withdrawal processing audit event.
+    /// </summary>
+    Task LogWithdrawalActionAsync(
+        Guid adminUserId,
+        Guid withdrawalId,
+        AuditAction action,
+        WithdrawalStatus previousStatus,
+        WithdrawalStatus newStatus,
+        string? reason,
+        CancellationToken cancellationToken);
 }

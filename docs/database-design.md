@@ -40,13 +40,13 @@ Users
 │
 ├── Orders
 │
-├── CommissionTransactions
+├── Transactions
 │
-└── WithdrawRequests
+└── Withdrawals
 
 Orders
 │
-└── CommissionTransactions
+└── (referenced by Transactions via ReferenceId)
 
 ---
 
@@ -202,56 +202,68 @@ PlatformProfit = CommissionAmount - CashbackAmount
 
 ---
 
-# 6. CommissionTransactions
+# 6. Transactions
 
 Purpose:
 
 Maintain balance history and audit trail.
 
-Table: CommissionTransactions
+Table: Transactions
 
-| Column      | Type          | Nullable |
-| ----------- | ------------- | -------- |
-| Id          | UUID          | No       |
-| UserId      | UUID          | No       |
-| OrderId     | UUID          | Yes      |
-| Amount      | DECIMAL(18,2) | No       |
-| Type        | VARCHAR(50)   | No       |
-| Description | TEXT          | Yes      |
-| CreatedAt   | TIMESTAMP     | No       |
+| Column        | Type          | Nullable |
+| ------------- | ------------- | -------- |
+| Id            | UUID          | No       |
+| UserId        | UUID          | No       |
+| Type          | INTEGER       | No       |
+| Amount        | DECIMAL(18,2) | No       |
+| BalanceBefore | DECIMAL(18,2) | No       |
+| BalanceAfter  | DECIMAL(18,2) | No       |
+| ReferenceId   | UUID          | Yes      |
+| Description   | TEXT          | Yes      |
+| CreatedAt     | TIMESTAMP     | No       |
+
+Indexes:
+
+- UserId
+- ReferenceId
+- Type
+- CreatedAt
 
 Types:
 
-- CashbackPending
-- CashbackApproved
-- CashbackReversed
+- CashbackEarned
 - WithdrawalRequested
+- WithdrawalApproved
+- WithdrawalRejected
 - WithdrawalCompleted
-- Adjustment
 
 Examples:
 
 Approved Order
 
-+70,000
+Amount: +70,000
 
-Rejected Order
+BalanceBefore: 30,000
 
--70,000
+BalanceAfter: 100,000
 
-Admin Adjustment
+Withdrawal Request
 
-+20,000
+Amount: -50,000
+
+BalanceBefore: 100,000
+
+BalanceAfter: 50,000
 
 ---
 
-# 7. WithdrawRequests
+# 7. Withdrawals
 
 Purpose:
 
 Store withdrawal requests.
 
-Table: WithdrawRequests
+Table: Withdrawals
 
 | Column            | Type          | Nullable |
 | ----------------- | ------------- | -------- |
@@ -260,9 +272,8 @@ Table: WithdrawRequests
 | Amount            | DECIMAL(18,2) | No       |
 | BankName          | VARCHAR(255)  | No       |
 | BankAccountNumber | VARCHAR(100)  | No       |
-| BankAccountName   | VARCHAR(255)  | No       |
-| Status            | VARCHAR(50)   | No       |
-| Note              | TEXT          | Yes      |
+| BankAccountHolder | VARCHAR(255)  | No       |
+| Status            | INTEGER       | No       |
 | RequestedAt       | TIMESTAMP     | No       |
 | ProcessedAt       | TIMESTAMP     | Yes      |
 
@@ -270,6 +281,7 @@ Indexes:
 
 - UserId
 - Status
+- RequestedAt
 
 Status:
 
@@ -311,7 +323,7 @@ Examples:
 
 Source Of Truth:
 
-CommissionTransactions
+Transactions
 
 Cached Values:
 
@@ -325,7 +337,7 @@ Fast dashboard queries.
 
 If balance inconsistency occurs:
 
-Recalculate from CommissionTransactions.
+Recalculate from Transactions.
 
 ---
 
@@ -375,9 +387,9 @@ Required:
 
 ✓ Orders
 
-✓ CommissionTransactions
+✓ Transactions
 
-✓ WithdrawRequests
+✓ Withdrawals
 
 Optional:
 

@@ -1,37 +1,32 @@
 namespace Cashback.Domain.Enums;
 
 /// <summary>
-/// Type of commission balance transaction.
+/// Type of financial balance transaction.
 /// </summary>
 public enum TransactionType
 {
     /// <summary>
-    /// Cashback detected but not yet approved.
+    /// Cashback credited after order approval.
     /// </summary>
-    CashbackPending = 1,
+    CashbackEarned = 1,
 
     /// <summary>
-    /// Approved cashback credited to balance.
+    /// Balance reserved when a withdrawal is requested.
     /// </summary>
-    CashbackApproved = 2,
+    WithdrawalRequested = 2,
 
     /// <summary>
-    /// Previously approved cashback reversed.
+    /// Withdrawal approved by admin.
     /// </summary>
-    CashbackReversed = 3,
+    WithdrawalApproved = 3,
 
     /// <summary>
-    /// Balance reserved for a withdrawal request.
+    /// Withdrawal rejected and balance restored.
     /// </summary>
-    WithdrawalRequested = 4,
+    WithdrawalRejected = 4,
 
     /// <summary>
     /// Withdrawal completed and paid out.
     /// </summary>
-    WithdrawalCompleted = 5,
-
-    /// <summary>
-    /// Manual balance adjustment.
-    /// </summary>
-    Adjustment = 6
+    WithdrawalCompleted = 5
 }

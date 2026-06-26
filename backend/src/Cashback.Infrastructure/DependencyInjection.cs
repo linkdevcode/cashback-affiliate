@@ -27,11 +27,13 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<AccesstradeOptions>(configuration.GetSection(AccesstradeOptions.SectionName));
         services.Configure<CashbackOptions>(configuration.GetSection(CashbackOptions.SectionName));
+        services.Configure<WithdrawalOptions>(configuration.GetSection(WithdrawalOptions.SectionName));
 
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IAccesstradeWebhookSettings, AccesstradeWebhookSettings>();
         services.AddSingleton<ICashbackSettings, CashbackSettings>();
+        services.AddSingleton<IWithdrawalSettings, WithdrawalSettings>();
         services.AddSingleton<IWebhookValidator, AccesstradeWebhookValidator>();
 
         services.AddHttpClient<IAffiliateProvider, AccesstradeProvider>((serviceProvider, client) =>

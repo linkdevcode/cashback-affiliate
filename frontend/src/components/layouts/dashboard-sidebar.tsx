@@ -7,7 +7,7 @@ const navigationItems = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Affiliate Links", href: "/dashboard/affiliate" },
   { label: "Orders", href: "/dashboard/orders" },
-  { label: "Withdrawals", href: "#" },
+  { label: "Withdrawals", href: "/dashboard/withdrawals" },
 ] as const;
 
 export function DashboardSidebar() {
@@ -22,8 +22,7 @@ export function DashboardSidebar() {
       <nav className="space-y-1 p-4">
         {navigationItems.map((item) => {
           const isActive =
-            item.href !== "#" &&
-            (pathname === item.href || pathname.startsWith(`${item.href}/`));
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link

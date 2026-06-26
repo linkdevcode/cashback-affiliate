@@ -253,31 +253,34 @@ Status Legend
 
 ### Backend
 
-* [ ] Withdrawal Entity
-* [ ] Create Withdrawal Command
-* [ ] Balance Validation
-* [ ] Withdrawal Repository
+* [x] Withdrawal Entity
+* [x] Create Withdrawal Command
+* [x] Balance Validation
+* [x] Withdrawal Repository
+* [x] Create Withdrawal API
+* [x] Get Withdrawals API
+* [x] Get Withdrawal Detail API
 
 ### Frontend
 
-* [ ] Withdrawal Form
-* [ ] Withdrawal History
+* [x] Withdrawal Form
+* [x] Withdrawal History
 
 ---
 
 ## Feature 7.2 - Withdrawal Processing
 
-* [ ] Approve Withdrawal
-* [ ] Reject Withdrawal
-* [ ] Complete Withdrawal
+* [x] Approve Withdrawal
+* [x] Reject Withdrawal
+* [x] Complete Withdrawal
 
 ---
 
 ## Feature 7.3 - Financial Transactions
 
-* [ ] Transaction Entity
-* [ ] Transaction Repository
-* [ ] Audit Trail
+* [x] Transaction Entity
+* [x] Transaction Repository
+* [x] Audit Trail
 
 ---
 

@@ -15,6 +15,7 @@ public sealed class DashboardService : IDashboardService
     private readonly IEarningsService _earningsService;
     private readonly IOrderRepository _orderRepository;
     private readonly IWithdrawalRepository _withdrawalRepository;
+    private readonly IBalanceService _balanceService;
 
     /// <summary>
     /// Initializes a new instance of the dashboard service.
@@ -22,11 +23,13 @@ public sealed class DashboardService : IDashboardService
     public DashboardService(
         IEarningsService earningsService,
         IOrderRepository orderRepository,
-        IWithdrawalRepository withdrawalRepository)
+        IWithdrawalRepository withdrawalRepository,
+        IBalanceService balanceService)
     {
         _earningsService = earningsService;
         _orderRepository = orderRepository;
         _withdrawalRepository = withdrawalRepository;
+        _balanceService = balanceService;
     }
 
     /// <inheritdoc/>
@@ -35,6 +38,9 @@ public sealed class DashboardService : IDashboardService
         CancellationToken cancellationToken)
     {
         var earningsTask = _earningsService.GetUserEarningsAsync(userId, cancellationToken);
+        var availableBalanceTask = _balanceService.GetOperationalAvailableBalanceAsync(
+            userId,
+            cancellationToken);
         var totalWithdrawnTask = _withdrawalRepository.GetTotalCompletedAmountByUserIdAsync(
             userId,
             cancellationToken);
@@ -47,14 +53,19 @@ public sealed class DashboardService : IDashboardService
             MonthlyCashbackCount,
             cancellationToken);
 
-        await Task.WhenAll(earningsTask, totalWithdrawnTask, recentOrdersTask, cashbackByMonthTask);
+        await Task.WhenAll(
+            earningsTask,
+            availableBalanceTask,
+            totalWithdrawnTask,
+            recentOrdersTask,
+            cashbackByMonthTask);
 
         var earnings = await earningsTask;
+        var availableBalance = await availableBalanceTask;
         var totalWithdrawn = await totalWithdrawnTask;
         var recentOrders = await recentOrdersTask;
         var cashbackByMonth = await cashbackByMonthTask;
 
-        var availableBalance = earnings.ApprovedCashback - totalWithdrawn;
         var totalCashback = earnings.ApprovedCashback + earnings.PendingCashback;
 
         return new DashboardSummaryDto

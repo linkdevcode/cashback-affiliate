@@ -41,7 +41,12 @@ public sealed class DashboardServiceTests
             .ReturnsAsync(CreateRecentOrders(userId, 2));
         SetupMonthlyCashback(orderRepository, userId);
 
-        var service = CreateService(earningsService, orderRepository, withdrawalRepository);
+        var balanceService = new Mock<IBalanceService>();
+        balanceService
+            .Setup(service => service.GetOperationalAvailableBalanceAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(120_000m);
+
+        var service = CreateService(earningsService, orderRepository, withdrawalRepository, balanceService);
 
         var result = await service.GetDashboardSummaryAsync(userId, CancellationToken.None);
 
@@ -75,7 +80,12 @@ public sealed class DashboardServiceTests
             .ReturnsAsync([]);
         SetupMonthlyCashback(orderRepository, userId);
 
-        var service = CreateService(earningsService, orderRepository, withdrawalRepository);
+        var balanceService = new Mock<IBalanceService>();
+        balanceService
+            .Setup(service => service.GetOperationalAvailableBalanceAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0m);
+
+        var service = CreateService(earningsService, orderRepository, withdrawalRepository, balanceService);
 
         var result = await service.GetDashboardSummaryAsync(userId, CancellationToken.None);
 
@@ -112,7 +122,12 @@ public sealed class DashboardServiceTests
             .ReturnsAsync([]);
         SetupMonthlyCashback(orderRepository, userId);
 
-        var service = CreateService(earningsService, orderRepository, withdrawalRepository);
+        var balanceService = new Mock<IBalanceService>();
+        balanceService
+            .Setup(service => service.GetOperationalAvailableBalanceAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(-50_000m);
+
+        var service = CreateService(earningsService, orderRepository, withdrawalRepository, balanceService);
 
         var result = await service.GetDashboardSummaryAsync(userId, CancellationToken.None);
 
@@ -149,7 +164,12 @@ public sealed class DashboardServiceTests
             .ReturnsAsync([]);
         SetupMonthlyCashback(orderRepository, userId);
 
-        var service = CreateService(earningsService, orderRepository, withdrawalRepository);
+        var balanceService = new Mock<IBalanceService>();
+        balanceService
+            .Setup(service => service.GetOperationalAvailableBalanceAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(70_000m);
+
+        var service = CreateService(earningsService, orderRepository, withdrawalRepository, balanceService);
 
         var result = await service.GetDashboardSummaryAsync(userId, CancellationToken.None);
 
@@ -189,7 +209,12 @@ public sealed class DashboardServiceTests
             .ReturnsAsync([order]);
         SetupMonthlyCashback(orderRepository, userId);
 
-        var service = CreateService(earningsService, orderRepository, withdrawalRepository);
+        var balanceService = new Mock<IBalanceService>();
+        balanceService
+            .Setup(service => service.GetOperationalAvailableBalanceAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0m);
+
+        var service = CreateService(earningsService, orderRepository, withdrawalRepository, balanceService);
 
         var result = await service.GetDashboardSummaryAsync(userId, CancellationToken.None);
 
@@ -206,12 +231,14 @@ public sealed class DashboardServiceTests
     private static DashboardService CreateService(
         Mock<IEarningsService> earningsService,
         Mock<IOrderRepository> orderRepository,
-        Mock<IWithdrawalRepository> withdrawalRepository)
+        Mock<IWithdrawalRepository> withdrawalRepository,
+        Mock<IBalanceService> balanceService)
     {
         return new DashboardService(
             earningsService.Object,
             orderRepository.Object,
-            withdrawalRepository.Object);
+            withdrawalRepository.Object,
+            balanceService.Object);
     }
 
     /// <summary>

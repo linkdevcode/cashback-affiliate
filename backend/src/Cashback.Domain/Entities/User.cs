@@ -84,14 +84,14 @@ public class User : AuditableEntity
     public ICollection<Order> Orders { get; private set; } = [];
 
     /// <summary>
-    /// Commission transactions recorded for the user.
+    /// Financial transactions recorded for the user.
     /// </summary>
-    public ICollection<CommissionTransaction> CommissionTransactions { get; private set; } = [];
+    public ICollection<Transaction> Transactions { get; private set; } = [];
 
     /// <summary>
     /// Withdrawal requests submitted by the user.
     /// </summary>
-    public ICollection<WithdrawRequest> WithdrawRequests { get; private set; } = [];
+    public ICollection<Withdrawal> Withdrawals { get; private set; } = [];
 
     /// <summary>
     /// Notifications sent to the user.

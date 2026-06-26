@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IOrderSynchronizationService, OrderSynchronizationService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
+        services.AddScoped<IBalanceService, BalanceService>();
 
         services.AddAutoMapper(assembly);
 

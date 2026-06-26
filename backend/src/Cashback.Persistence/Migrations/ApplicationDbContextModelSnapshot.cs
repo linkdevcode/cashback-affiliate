@@ -100,39 +100,6 @@ namespace Cashback.Persistence.Migrations
                     b.ToTable("AuditLogs", (string)null);
                 });
 
-            modelBuilder.Entity("Cashback.Domain.Entities.CommissionTransaction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("OrderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CommissionTransactions", (string)null);
-                });
-
             modelBuilder.Entity("Cashback.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -269,6 +236,49 @@ namespace Cashback.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("SystemSettings", (string)null);
+                });
+
+            modelBuilder.Entity("Cashback.Domain.Entities.Transaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BalanceBefore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ReferenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("ReferenceId");
+
+                    b.HasIndex("Type");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("Cashback.Domain.Entities.User", b =>
@@ -426,7 +436,7 @@ namespace Cashback.Persistence.Migrations
                     b.ToTable("WebhookEvents", (string)null);
                 });
 
-            modelBuilder.Entity("Cashback.Domain.Entities.WithdrawRequest", b =>
+            modelBuilder.Entity("Cashback.Domain.Entities.Withdrawal", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -435,7 +445,7 @@ namespace Cashback.Persistence.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("BankAccountName")
+                    b.Property<string>("BankAccountHolder")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
@@ -449,9 +459,6 @@ namespace Cashback.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text");
 
                     b.Property<DateTime?>("ProcessedAt")
                         .HasColumnType("timestamp with time zone");
@@ -467,11 +474,13 @@ namespace Cashback.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RequestedAt");
+
                     b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("WithdrawRequests", (string)null);
+                    b.ToTable("Withdrawals", (string)null);
                 });
 
             modelBuilder.Entity("Cashback.Domain.Entities.AffiliateLink", b =>
@@ -481,24 +490,6 @@ namespace Cashback.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Cashback.Domain.Entities.CommissionTransaction", b =>
-                {
-                    b.HasOne("Cashback.Domain.Entities.Order", "Order")
-                        .WithMany("CommissionTransactions")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Cashback.Domain.Entities.User", "User")
-                        .WithMany("CommissionTransactions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Order");
 
                     b.Navigation("User");
                 });
@@ -532,6 +523,17 @@ namespace Cashback.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Cashback.Domain.Entities.Transaction", b =>
+                {
+                    b.HasOne("Cashback.Domain.Entities.User", "User")
+                        .WithMany("Transactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Cashback.Domain.Entities.UserRefreshToken", b =>
                 {
                     b.HasOne("Cashback.Domain.Entities.User", "User")
@@ -543,10 +545,10 @@ namespace Cashback.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Cashback.Domain.Entities.WithdrawRequest", b =>
+            modelBuilder.Entity("Cashback.Domain.Entities.Withdrawal", b =>
                 {
                     b.HasOne("Cashback.Domain.Entities.User", "User")
-                        .WithMany("WithdrawRequests")
+                        .WithMany("Withdrawals")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -559,16 +561,9 @@ namespace Cashback.Persistence.Migrations
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("Cashback.Domain.Entities.Order", b =>
-                {
-                    b.Navigation("CommissionTransactions");
-                });
-
             modelBuilder.Entity("Cashback.Domain.Entities.User", b =>
                 {
                     b.Navigation("AffiliateLinks");
-
-                    b.Navigation("CommissionTransactions");
 
                     b.Navigation("Notifications");
 
@@ -576,7 +571,9 @@ namespace Cashback.Persistence.Migrations
 
                     b.Navigation("RefreshTokens");
 
-                    b.Navigation("WithdrawRequests");
+                    b.Navigation("Transactions");
+
+                    b.Navigation("Withdrawals");
                 });
 #pragma warning restore 612, 618
         }

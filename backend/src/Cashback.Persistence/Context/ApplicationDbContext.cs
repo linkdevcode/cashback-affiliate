@@ -37,14 +37,14 @@ public class ApplicationDbContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
 
     /// <summary>
-    /// Commission balance transactions.
+    /// Financial balance transactions.
     /// </summary>
-    public DbSet<CommissionTransaction> CommissionTransactions => Set<CommissionTransaction>();
+    public DbSet<Transaction> Transactions => Set<Transaction>();
 
     /// <summary>
     /// Withdrawal requests.
     /// </summary>
-    public DbSet<WithdrawRequest> WithdrawRequests => Set<WithdrawRequest>();
+    public DbSet<Withdrawal> Withdrawals => Set<Withdrawal>();
 
     /// <summary>
     /// User notifications.
