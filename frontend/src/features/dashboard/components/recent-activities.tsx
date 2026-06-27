@@ -1,7 +1,8 @@
 "use client";
 
-import { Coins, Loader2, Package, RefreshCw } from "lucide-react";
+import { Activity, Coins, Package, RefreshCw } from "lucide-react";
 
+import { EmptyState } from "@/components/empty-state";
 import {
   Card,
   CardContent,
@@ -9,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   mapOrdersToActivities,
   type DashboardActivityType,
@@ -30,30 +32,25 @@ export function RecentActivities({ orders, isLoading = false }: RecentActivities
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Recent Activities</CardTitle>
-        <CardDescription>
-          Recent orders, status changes, and cashback updates
-        </CardDescription>
+        <CardTitle className="text-lg font-semibold">Recent activity</CardTitle>
+        <CardDescription>Orders, status changes, and cashback updates</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-            <Loader2 className="mr-2 size-4 animate-spin" />
-            Loading activities...
-          </div>
-        ) : null}
+        {isLoading ? <RecentActivitiesSkeleton /> : null}
 
         {!isLoading && activities.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">
-            No recent activity yet.
-          </p>
+          <EmptyState
+            icon={Activity}
+            title="No activity yet"
+            description="Your order and cashback updates will appear here."
+          />
         ) : null}
 
         {!isLoading && activities.length > 0 ? (
           <ul className="space-y-4">
             {activities.map((activity) => (
               <li key={activity.id} className="flex gap-3">
-                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                <div className="mt-0.5 shrink-0">
                   <ActivityIcon type={activity.type} />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1">
@@ -66,11 +63,11 @@ export function RecentActivities({ orders, isLoading = false }: RecentActivities
                       {formatDateTime(activity.timestamp)}
                     </time>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {activity.description}
                   </p>
                   {activity.amount !== undefined ? (
-                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                    <p className="text-sm font-medium tabular-nums text-success">
                       {formatCurrency(activity.amount)}
                     </p>
                   ) : null}
@@ -85,14 +82,36 @@ export function RecentActivities({ orders, isLoading = false }: RecentActivities
 }
 
 function ActivityIcon({ type }: { type: DashboardActivityType }) {
+  const iconClassName = "size-4 text-muted-foreground";
+
   switch (type) {
     case "order":
-      return <Package className="size-4 text-muted-foreground" />;
+      return <Package className={iconClassName} aria-hidden="true" />;
     case "status":
-      return <RefreshCw className="size-4 text-muted-foreground" />;
+      return <RefreshCw className={iconClassName} aria-hidden="true" />;
     case "cashback":
-      return <Coins className="size-4 text-muted-foreground" />;
+      return <Coins className={iconClassName} aria-hidden="true" />;
     default:
-      return <Package className="size-4 text-muted-foreground" />;
+      return <Package className={iconClassName} aria-hidden="true" />;
   }
+}
+
+function RecentActivitiesSkeleton() {
+  return (
+    <ul className="space-y-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <li key={index} className="flex gap-3">
+          <Skeleton className="size-4 shrink-0 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <div className="flex justify-between gap-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
 }

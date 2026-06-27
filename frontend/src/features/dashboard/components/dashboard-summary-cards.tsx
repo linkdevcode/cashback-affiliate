@@ -1,16 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import { Loader2, Wallet } from "lucide-react";
+import { Wallet } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { EmptyState } from "@/components/empty-state";
+import { MetricCard, MetricCardSkeleton } from "@/components/metric-card";
 import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/features/orders/lib/order-formatters";
 import { isApiError } from "@/services/api-client";
 import { emptyDashboardSummary, type DashboardSummary } from "@/types/dashboard";
@@ -23,6 +17,33 @@ interface DashboardSummaryCardsProps {
   error?: unknown;
 }
 
+const metricDefinitions = [
+  {
+    key: "availableBalance" as const,
+    label: "Available Balance",
+    description: "Ready to withdraw",
+    featured: true,
+  },
+  {
+    key: "pendingCashback" as const,
+    label: "Pending Cashback",
+    description: "Awaiting approval",
+    featured: false,
+  },
+  {
+    key: "totalCashback" as const,
+    label: "Total Cashback",
+    description: "Approved and pending",
+    featured: false,
+  },
+  {
+    key: "totalWithdrawn" as const,
+    label: "Total Withdrawn",
+    description: "Completed payouts",
+    featured: false,
+  },
+];
+
 export function DashboardSummaryCards({
   summary = emptyDashboardSummary,
   isLoading = false,
@@ -30,7 +51,13 @@ export function DashboardSummaryCards({
   error,
 }: DashboardSummaryCardsProps) {
   if (isLoading) {
-    return <DashboardSummaryCardsSkeleton />;
+    return (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {metricDefinitions.map((metric) => (
+          <MetricCardSkeleton key={metric.key} featured={metric.featured} />
+        ))}
+      </div>
+    );
   }
 
   if (isError) {
@@ -45,91 +72,52 @@ export function DashboardSummaryCards({
     );
   }
 
-  if (isDashboardEmpty(summary)) {
-    return <DashboardEmptyState />;
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {metricDefinitions.map((metric) => (
+        <MetricCard
+          key={metric.key}
+          label={metric.label}
+          value={formatCurrency(summary[metric.key])}
+          description={metric.description}
+          featured={metric.featured}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface DashboardEmptyBannerProps {
+  summary: DashboardSummary;
+}
+
+export function DashboardEmptyBanner({ summary }: DashboardEmptyBannerProps) {
+  if (!isDashboardEmpty(summary)) {
+    return null;
   }
 
-  const cards = [
-    {
-      title: "Available Balance",
-      description: "Ready to withdraw",
-      value: summary.availableBalance,
-    },
-    {
-      title: "Pending Cashback",
-      description: "Awaiting approval",
-      value: summary.pendingCashback,
-    },
-    {
-      title: "Total Cashback",
-      description: "Approved and pending",
-      value: summary.totalCashback,
-    },
-    {
-      title: "Total Withdrawn",
-      description: "Completed payouts",
-      value: summary.totalWithdrawn,
-    },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card) => (
-        <Card key={card.title}>
-          <CardHeader className="pb-2">
-            <CardDescription>{card.description}</CardDescription>
-            <CardTitle className="text-base font-medium">{card.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold tracking-tight sm:text-xl lg:text-2xl">
-              {formatCurrency(card.value)}
-            </p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-function DashboardSummaryCardsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <Card key={index}>
-          <CardContent className="flex items-center justify-center py-10">
-            <Loader2 className="size-4 animate-spin text-muted-foreground" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-function DashboardEmptyState() {
   return (
     <Card>
-      <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-        <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-          <Wallet className="size-6 text-muted-foreground" />
-        </div>
-        <div className="space-y-1">
-          <p className="text-base font-medium">No earnings yet</p>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Generate an affiliate link and make a purchase to start earning cashback.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/affiliate"
-          className={cn(buttonVariants({ variant: "outline" }))}
-        >
-          Create affiliate link
-        </Link>
+      <CardContent>
+        <EmptyState
+          icon={Wallet}
+          title="No earnings yet"
+          description="Generate an affiliate link and make a purchase to start earning cashback."
+          action={
+            <Link
+              href="/dashboard/affiliate"
+              className={cn(buttonVariants({ variant: "outline" }))}
+            >
+              Create affiliate link
+            </Link>
+          }
+        />
       </CardContent>
     </Card>
   );
 }
 
-function isDashboardEmpty(summary: DashboardSummary): boolean {
+export function isDashboardEmpty(summary: DashboardSummary): boolean {
   const hasChartData = summary.cashbackByMonth.some(
     (item) => item.cashbackAmount > 0,
   );

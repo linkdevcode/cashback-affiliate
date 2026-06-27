@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 
+import { EmptyState } from "@/components/empty-state";
 import {
   Card,
   CardContent,
@@ -10,14 +11,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toChartData } from "@/features/dashboard/lib/chart-formatters";
 import { formatCurrency } from "@/features/orders/lib/order-formatters";
 import type { MonthlyCashback } from "@/types/dashboard";
+import { BarChart3 } from "lucide-react";
 
 const chartConfig = {
   cashback: {
     label: "Cashback",
-    color: "var(--chart-2)",
+    color: "var(--chart-cashback)",
   },
 };
 
@@ -33,26 +36,24 @@ export function EarningsChart({ cashbackByMonth, isLoading = false }: EarningsCh
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Earnings Chart</CardTitle>
+        <CardTitle className="text-lg font-semibold">Earnings</CardTitle>
         <CardDescription>Cashback by month for the last 6 months</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-            Loading chart...
-          </div>
-        ) : null}
+        {isLoading ? <EarningsChartSkeleton /> : null}
 
         {!isLoading && !hasData ? (
-          <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-            No cashback data for the last 6 months.
-          </div>
+          <EmptyState
+            icon={BarChart3}
+            title="No earnings data yet"
+            description="Your monthly cashback chart will appear here once orders are approved."
+          />
         ) : null}
 
         {!isLoading && hasData ? (
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <BarChart accessibilityLayer data={chartData}>
-              <CartesianGrid vertical={false} />
+              <CartesianGrid vertical={false} stroke="var(--border)" />
               <XAxis
                 dataKey="month"
                 tickLine={false}
@@ -80,11 +81,11 @@ export function EarningsChart({ cashbackByMonth, isLoading = false }: EarningsCh
                   const value = payload[0]?.value;
 
                   return (
-                    <div className="rounded-lg border bg-background px-3 py-2 text-xs shadow-xl">
+                    <div className="rounded-lg border border-border bg-background px-3 py-2 text-xs">
                       <p className="mb-1 font-medium">{label}</p>
                       <p className="text-muted-foreground">
                         Cashback:{" "}
-                        <span className="font-medium text-foreground">
+                        <span className="font-medium tabular-nums text-foreground">
                           {formatCurrency(Number(value ?? 0))}
                         </span>
                       </p>
@@ -102,5 +103,22 @@ export function EarningsChart({ cashbackByMonth, isLoading = false }: EarningsCh
         ) : null}
       </CardContent>
     </Card>
+  );
+}
+
+function EarningsChartSkeleton() {
+  return (
+    <div className="flex h-64 flex-col justify-end gap-2">
+      <div className="flex h-full items-end justify-between gap-2 px-2">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Skeleton
+            key={index}
+            className="w-full"
+            style={{ height: `${40 + (index % 3) * 20}%` }}
+          />
+        ))}
+      </div>
+      <Skeleton className="h-3 w-full" />
+    </div>
   );
 }
