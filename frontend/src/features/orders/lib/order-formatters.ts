@@ -33,11 +33,11 @@ export function getOrderStatusLabel(status: OrderStatusFilter): string {
 export function getOrderStatusBadgeClass(status: OrderStatus): string {
   switch (status) {
     case OrderStatus.Pending:
-      return "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
+      return "bg-warning-muted text-warning";
     case OrderStatus.Approved:
-      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
+      return "bg-success-muted text-success";
     case OrderStatus.Rejected:
-      return "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300";
+      return "bg-destructive-muted text-destructive";
     default:
       return "bg-muted text-muted-foreground";
   }

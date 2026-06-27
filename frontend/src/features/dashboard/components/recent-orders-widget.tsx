@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buttonVariants } from "@/components/ui/button";
+import { OrderStatusBadge } from "@/components/status-badge";
 import {
   formatCurrency,
   formatDateTime,
-  getOrderStatusBadgeClass,
 } from "@/features/orders/lib/order-formatters";
 import type { OrderListItem } from "@/types/order";
 import { cn } from "@/lib/utils";
@@ -95,11 +95,7 @@ export function RecentOrdersWidget({
                     >
                       <td className="px-4 py-3 font-medium">{order.orderCode}</td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getOrderStatusBadgeClass(order.status)}`}
-                        >
-                          {order.statusName}
-                        </span>
+                        <OrderStatusBadge status={order.status} label={order.statusName} />
                       </td>
                       <td className="px-4 py-3 font-medium tabular-nums">
                         {formatCurrency(order.cashbackAmount)}
@@ -121,11 +117,11 @@ export function RecentOrdersWidget({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-sm font-medium">{order.orderCode}</p>
-                    <span
-                      className={`inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${getOrderStatusBadgeClass(order.status)}`}
-                    >
-                      {order.statusName}
-                    </span>
+                    <OrderStatusBadge
+                      status={order.status}
+                      label={order.statusName}
+                      className="shrink-0"
+                    />
                   </div>
                   <dl className="grid grid-cols-2 gap-3">
                     <div>

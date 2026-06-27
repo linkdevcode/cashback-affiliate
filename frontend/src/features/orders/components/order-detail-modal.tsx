@@ -1,7 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-
+import { OrderStatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,12 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { OrderStatusTimeline } from "@/features/orders/components/order-status-timeline";
 import { useOrderDetail } from "@/features/orders/hooks/use-order-detail";
 import {
   formatCurrency,
   formatDateTime,
-  getOrderStatusBadgeClass,
 } from "@/features/orders/lib/order-formatters";
 import { isApiError } from "@/services/api-client";
 
@@ -42,13 +41,8 @@ export function OrderDetailModal({
         </DialogDescription>
       </DialogHeader>
 
-      <DialogContent className="space-y-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-            <Loader2 className="mr-2 size-4 animate-spin" />
-            Loading order details...
-          </div>
-        ) : null}
+      <DialogContent className="space-y-6">
+        {isLoading ? <OrderDetailSkeleton /> : null}
 
         {isError ? (
           <p className="text-sm text-destructive" role="alert">
@@ -58,28 +52,33 @@ export function OrderDetailModal({
 
         {data ? (
           <>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Order ID</p>
+                <p className="font-mono text-base font-semibold">{data.orderCode}</p>
+              </div>
+              <OrderStatusBadge status={data.status} label={data.statusName} />
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
-              <DetailField label="Order ID" value={data.orderCode} />
               <DetailField label="Merchant" value={data.merchant ?? "—"} />
               <DetailField
                 label="Order amount"
                 value={data.orderAmount != null ? formatCurrency(data.orderAmount) : "—"}
+                tabular
               />
               <DetailField label="Created at" value={formatDateTime(data.createdAt)} />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <DetailField label="Commission amount" value={formatCurrency(data.commissionAmount)} />
-              <DetailField label="Cashback amount" value={formatCurrency(data.cashbackAmount)} />
-            </div>
-
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground">Status</p>
-              <span
-                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getOrderStatusBadgeClass(data.status)}`}
-              >
-                {data.statusName}
-              </span>
+              <DetailField
+                label="Commission amount"
+                value={formatCurrency(data.commissionAmount)}
+                tabular
+              />
+              <DetailField
+                label="Cashback amount"
+                value={formatCurrency(data.cashbackAmount)}
+                tabular
+                emphasized
+              />
             </div>
 
             <OrderStatusTimeline status={data.status} statusName={data.statusName} />
@@ -99,13 +98,49 @@ export function OrderDetailModal({
 interface DetailFieldProps {
   label: string;
   value: string;
+  tabular?: boolean;
+  emphasized?: boolean;
 }
 
-function DetailField({ label, value }: DetailFieldProps) {
+function DetailField({ label, value, tabular = false, emphasized = false }: DetailFieldProps) {
   return (
     <div className="space-y-1.5">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="rounded-lg border bg-muted/30 px-3 py-2 text-sm">{value}</p>
+      <p
+        className={`rounded-lg bg-muted/30 px-3 py-2 text-sm ${
+          tabular ? "tabular-nums" : ""
+        } ${emphasized ? "font-medium" : ""}`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function OrderDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <Skeleton className="h-6 w-20 rounded-full" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-3 w-24" />
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Skeleton key={index} className="h-8 w-full" />
+        ))}
+      </div>
     </div>
   );
 }
