@@ -375,6 +375,16 @@ Status Legend
 
 ---
 
+EPIC 8.5 - Design System & UI Revamp
+
+1. DESIGN.md
+2. Dashboard redesign
+3. Orders redesign
+4. Withdrawals redesign
+5. Admin redesign
+
+---
+
 # EPIC 9 - Settings Module
 
 ## Feature 9.1 - System Settings
