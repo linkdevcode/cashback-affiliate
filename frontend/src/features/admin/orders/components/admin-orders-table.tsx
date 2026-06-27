@@ -1,28 +1,31 @@
 "use client";
 
+import { Eye, Package } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Eye, Loader2 } from "lucide-react";
 
+import { EmptyState } from "@/components/empty-state";
+import { OrderStatusBadge } from "@/components/status-badge";
+import { TableFetchOverlay } from "@/components/table-fetch-overlay";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AdminOrderDateRangeFilter } from "@/features/admin/orders/components/admin-order-date-range-filter";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AdminOrderDetailModal } from "@/features/admin/orders/components/admin-order-detail-modal";
-import { AdminOrderSearchFilters } from "@/features/admin/orders/components/admin-order-search-filters";
-import { AdminOrderStatusFilter } from "@/features/admin/orders/components/admin-order-status-filter";
-import { AdminOrdersPagination } from "@/features/admin/orders/components/admin-orders-pagination";
+import { AdminOrderFilters } from "@/features/admin/orders/components/admin-order-filters";
 import { useAdminOrders } from "@/features/admin/orders/hooks/use-admin-orders";
+import { OrdersPagination } from "@/features/orders/components/orders-pagination";
 import {
   formatCurrency,
   formatDateTime,
-  getOrderStatusBadgeClass,
 } from "@/features/orders/lib/order-formatters";
 import { isApiError } from "@/services/api-client";
+import type { AdminOrderListItem } from "@/types/admin-order";
 import type { OrderStatusFilter } from "@/types/order";
 
 const PAGE_SIZE = 20;
@@ -62,32 +65,20 @@ export function AdminOrdersTable() {
     toDate: toDate || undefined,
   });
 
-  const handleStatusFilterChange = (value: OrderStatusFilter) => {
-    setStatusFilter(value);
+  const hasActiveFilters =
+    Boolean(orderIdSearch || userSearch || fromDate || toDate) ||
+    statusFilter !== "all";
+  const isEmpty = !isLoading && !isError && data?.items.length === 0;
+
+  const handleClearFilters = () => {
+    setStatusFilter("all");
+    setOrderIdInput("");
+    setUserInput("");
+    setOrderIdSearch("");
+    setUserSearch("");
+    setFromDate("");
+    setToDate("");
     setPage(1);
-  };
-
-  const handleFromDateChange = (value: string) => {
-    setFromDate(value);
-    setPage(1);
-  };
-
-  const handleToDateChange = (value: string) => {
-    setToDate(value);
-    setPage(1);
-  };
-
-  const handleViewDetail = (orderId: string) => {
-    setSelectedOrderId(orderId);
-    setIsDetailOpen(true);
-  };
-
-  const handleDetailOpenChange = (open: boolean) => {
-    setIsDetailOpen(open);
-
-    if (!open) {
-      setSelectedOrderId(null);
-    }
   };
 
   return (
@@ -101,118 +92,212 @@ export function AdminOrdersTable() {
             </CardDescription>
           </div>
 
-          <AdminOrderSearchFilters
+          <AdminOrderFilters
             orderId={orderIdInput}
             user={userInput}
-            onOrderIdChange={setOrderIdInput}
-            onUserChange={setUserInput}
-            disabled={isLoading || isFetching}
-          />
-
-          <AdminOrderDateRangeFilter
             fromDate={fromDate}
             toDate={toDate}
-            onFromDateChange={handleFromDateChange}
-            onToDateChange={handleToDateChange}
-            disabled={isLoading || isFetching}
-          />
-
-          <AdminOrderStatusFilter
-            value={statusFilter}
-            onChange={handleStatusFilterChange}
-            disabled={isLoading || isFetching}
+            statusFilter={statusFilter}
+            onOrderIdChange={setOrderIdInput}
+            onUserChange={setUserInput}
+            onFromDateChange={setFromDate}
+            onToDateChange={setToDate}
+            onStatusFilterChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+            onClearFilters={handleClearFilters}
+            disabled={isLoading}
           />
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              Loading orders...
-            </div>
-          ) : null}
-
           {isError ? (
             <p className="text-sm text-destructive" role="alert">
               {getErrorMessage(error)}
             </p>
           ) : null}
 
-          {!isLoading && !isError && data?.items.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-              No orders found matching your filters.
-            </p>
+          {isLoading ? <AdminOrdersTableSkeleton /> : null}
+
+          {isEmpty && !hasActiveFilters ? (
+            <EmptyState
+              icon={Package}
+              title="No orders yet"
+              description="Affiliate conversion orders will appear here."
+            />
+          ) : null}
+
+          {isEmpty && hasActiveFilters ? (
+            <EmptyState
+              icon={Package}
+              title="No matching orders"
+              description="No orders found matching your filters."
+              action={
+                <Button type="button" variant="ghost" size="sm" onClick={handleClearFilters}>
+                  Clear filters
+                </Button>
+              }
+            />
           ) : null}
 
           {!isLoading && !isError && data && data.items.length > 0 ? (
-            <div className="overflow-x-auto rounded-lg border">
-              <table className="w-full min-w-[960px] text-left text-sm">
-                <thead className="border-b bg-muted/40">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Order ID</th>
-                    <th className="px-4 py-3 font-medium">User</th>
-                    <th className="px-4 py-3 font-medium">Commission</th>
-                    <th className="px-4 py-3 font-medium">Cashback</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Created date</th>
-                    <th className="px-4 py-3 font-medium text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.items.map((order) => (
-                    <tr key={order.id} className="border-b last:border-b-0">
-                      <td className="px-4 py-3 font-medium">{order.orderCode}</td>
-                      <td className="px-4 py-3">
-                        <p className="font-medium">{order.user.fullName}</p>
-                        <p className="text-xs text-muted-foreground">{order.user.email}</p>
-                      </td>
-                      <td className="px-4 py-3">{formatCurrency(order.commissionAmount)}</td>
-                      <td className="px-4 py-3">{formatCurrency(order.cashbackAmount)}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getOrderStatusBadgeClass(order.status)}`}
-                        >
-                          {order.statusName}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                        {formatDateTime(order.createdAt)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewDetail(order.id)}
-                        >
-                          <Eye />
-                          View
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <TableFetchOverlay isFetching={isFetching}>
+              <AdminOrdersDesktopTable
+                orders={data.items}
+                onViewDetail={(id) => {
+                  setSelectedOrderId(id);
+                  setIsDetailOpen(true);
+                }}
+              />
+              <AdminOrdersMobileList
+                orders={data.items}
+                onViewDetail={(id) => {
+                  setSelectedOrderId(id);
+                  setIsDetailOpen(true);
+                }}
+              />
+            </TableFetchOverlay>
           ) : null}
+        </CardContent>
 
-          {!isLoading && !isError && data && data.totalCount > 0 ? (
-            <AdminOrdersPagination
+        {!isLoading && !isError && data && data.totalCount > 0 ? (
+          <CardFooter className="border-t">
+            <OrdersPagination
               page={data.page}
               pageSize={data.pageSize}
               totalCount={data.totalCount}
               onPageChange={setPage}
               disabled={isFetching}
             />
-          ) : null}
-        </CardContent>
+          </CardFooter>
+        ) : null}
       </Card>
 
       <AdminOrderDetailModal
         orderId={selectedOrderId}
         open={isDetailOpen}
-        onOpenChange={handleDetailOpenChange}
+        onOpenChange={(open) => {
+          setIsDetailOpen(open);
+          if (!open) setSelectedOrderId(null);
+        }}
       />
+    </>
+  );
+}
+
+function AdminOrdersDesktopTable({
+  orders,
+  onViewDetail,
+}: {
+  orders: AdminOrderListItem[];
+  onViewDetail: (id: string) => void;
+}) {
+  return (
+    <div className="hidden overflow-hidden rounded-xl border border-border md:block">
+      <table className="w-full text-left text-sm">
+        <thead className="sticky top-0 z-10 border-b border-border bg-muted/40">
+          <tr>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Order ID</th>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">User</th>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Commission</th>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Cashback</th>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Created</th>
+            <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order) => (
+            <tr key={order.id} className="border-b border-border last:border-b-0 hover:bg-muted/30">
+              <td className="px-4 py-3 font-mono text-sm font-medium">{order.orderCode}</td>
+              <td className="px-4 py-3">
+                <p className="font-medium">{order.user.fullName}</p>
+                <p className="text-xs text-muted-foreground">{order.user.email}</p>
+              </td>
+              <td className="px-4 py-3 tabular-nums">{formatCurrency(order.commissionAmount)}</td>
+              <td className="px-4 py-3 font-medium tabular-nums">{formatCurrency(order.cashbackAmount)}</td>
+              <td className="px-4 py-3">
+                <OrderStatusBadge status={order.status} label={order.statusName} />
+              </td>
+              <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateTime(order.createdAt)}</td>
+              <td className="px-4 py-3 text-right">
+                <Button type="button" variant="outline" size="sm" onClick={() => onViewDetail(order.id)}>
+                  <Eye className="size-4" />
+                  View
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AdminOrdersMobileList({
+  orders,
+  onViewDetail,
+}: {
+  orders: AdminOrderListItem[];
+  onViewDetail: (id: string) => void;
+}) {
+  return (
+    <div className="space-y-3 md:hidden">
+      {orders.map((order) => (
+        <article key={order.id} className="space-y-3 rounded-xl border border-border p-4">
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-mono text-sm font-medium">{order.orderCode}</p>
+            <OrderStatusBadge status={order.status} label={order.statusName} className="shrink-0" />
+          </div>
+          <p className="text-sm font-medium">{order.user.fullName}</p>
+          <p className="text-xs text-muted-foreground">{order.user.email}</p>
+          <dl className="grid grid-cols-2 gap-3">
+            <div>
+              <dt className="text-xs text-muted-foreground">Commission</dt>
+              <dd className="text-sm tabular-nums">{formatCurrency(order.commissionAmount)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Cashback</dt>
+              <dd className="text-sm font-medium tabular-nums">{formatCurrency(order.cashbackAmount)}</dd>
+            </div>
+          </dl>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">{formatDateTime(order.createdAt)}</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => onViewDetail(order.id)}>
+              View
+            </Button>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function AdminOrdersTableSkeleton() {
+  return (
+    <>
+      <div className="hidden overflow-hidden rounded-xl border border-border md:block">
+        <div className="border-b border-border bg-muted/40 px-4 py-3">
+          <Skeleton className="h-3 w-full max-w-lg" />
+        </div>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="flex gap-4 border-b border-border px-4 py-3 last:border-b-0">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="ml-auto h-8 w-16" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-3 md:hidden">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Skeleton key={index} className="h-36 w-full rounded-xl" />
+        ))}
+      </div>
     </>
   );
 }

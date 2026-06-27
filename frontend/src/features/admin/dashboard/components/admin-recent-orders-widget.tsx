@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Package } from "lucide-react";
 
+import { EmptyState } from "@/components/empty-state";
+import { OrderStatusBadge } from "@/components/status-badge";
 import {
   Card,
   CardContent,
@@ -10,9 +12,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   formatCurrency,
-  getOrderStatusBadgeClass,
 } from "@/features/orders/lib/order-formatters";
 import type { AdminRecentOrder } from "@/types/admin-dashboard";
 
@@ -28,57 +30,45 @@ export function AdminRecentOrdersWidget({
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <CardTitle>Recent orders</CardTitle>
+        <div className="space-y-1">
+          <CardTitle className="text-lg font-semibold">Recent orders</CardTitle>
           <CardDescription>Latest affiliate conversions</CardDescription>
         </div>
-        <Link
-          href="/admin/orders"
-          className="text-sm font-medium text-primary hover:underline"
-        >
+        <Link href="/admin/orders" className="text-sm font-medium text-brand hover:underline">
           View all
         </Link>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
-            <Loader2 className="mr-2 size-4 animate-spin" />
-            Loading recent orders...
-          </div>
-        ) : null}
+        {isLoading ? <RecentOrdersSkeleton /> : null}
 
         {!isLoading && orders.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">
-            No recent orders yet.
-          </p>
+          <EmptyState
+            icon={Package}
+            title="No recent orders"
+            description="New affiliate conversions will appear here."
+          />
         ) : null}
 
         {!isLoading && orders.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[28rem] text-left text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground">
-                  <th className="px-2 py-2 font-medium">Order ID</th>
-                  <th className="px-2 py-2 font-medium">User</th>
-                  <th className="px-2 py-2 font-medium">Status</th>
-                  <th className="px-2 py-2 font-medium">Cashback</th>
+          <div className="overflow-hidden rounded-xl border border-border">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border bg-muted/40">
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Order ID</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">User</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Cashback</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order.id} className="border-b last:border-0">
-                    <td className="px-2 py-2 font-medium">{order.orderCode}</td>
-                    <td className="px-2 py-2 text-muted-foreground">
-                      {order.userEmail}
+                  <tr key={order.id} className="border-b border-border last:border-b-0 hover:bg-muted/30">
+                    <td className="px-4 py-3 font-mono text-sm font-medium">{order.orderCode}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{order.userEmail}</td>
+                    <td className="px-4 py-3">
+                      <OrderStatusBadge status={order.status} label={order.statusName} />
                     </td>
-                    <td className="px-2 py-2">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getOrderStatusBadgeClass(order.status)}`}
-                      >
-                        {order.statusName}
-                      </span>
-                    </td>
-                    <td className="px-2 py-2 font-medium">
+                    <td className="px-4 py-3 font-medium tabular-nums">
                       {formatCurrency(order.cashbackAmount)}
                     </td>
                   </tr>
@@ -89,5 +79,15 @@ export function AdminRecentOrdersWidget({
         ) : null}
       </CardContent>
     </Card>
+  );
+}
+
+function RecentOrdersSkeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Skeleton key={index} className="h-10 w-full rounded-lg" />
+      ))}
+    </div>
   );
 }

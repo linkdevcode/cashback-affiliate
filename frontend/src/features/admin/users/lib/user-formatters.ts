@@ -45,11 +45,11 @@ export function getUserStatusFilterLabel(filter: AdminUserStatusFilter): string 
 export function getUserStatusBadgeClass(status: UserStatus): string {
   switch (status) {
     case UserStatusValue.Active:
-      return "bg-emerald-100 text-emerald-800";
+      return "bg-success-muted text-success";
     case UserStatusValue.Suspended:
-      return "bg-amber-100 text-amber-800";
+      return "bg-destructive-muted text-destructive";
     case UserStatusValue.Deleted:
-      return "bg-red-100 text-red-800";
+      return "bg-muted text-muted-foreground";
     default:
       return "bg-muted text-muted-foreground";
   }

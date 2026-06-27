@@ -1,7 +1,10 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 
+import { AdminStatBlock } from "@/components/admin-stat-block";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/features/orders/lib/order-formatters";
 import { isApiError } from "@/services/api-client";
 import {
@@ -51,7 +55,7 @@ export function AdminStatisticsCards({
       description: "Platform user accounts",
       metrics: [
         { label: "Total users", value: formatCount(summary.totalUsers) },
-        { label: "Active users", value: formatCount(summary.activeUsers) },
+        { label: "Active users", value: formatCount(summary.activeUsers), featured: true },
         { label: "Suspended users", value: formatCount(summary.suspendedUsers) },
       ],
     },
@@ -60,7 +64,7 @@ export function AdminStatisticsCards({
       description: "Affiliate conversion activity",
       metrics: [
         { label: "Total orders", value: formatCount(summary.totalOrders) },
-        { label: "Pending orders", value: formatCount(summary.pendingOrders) },
+        { label: "Pending orders", value: formatCount(summary.pendingOrders), featured: true },
         { label: "Approved orders", value: formatCount(summary.approvedOrders) },
         { label: "Rejected orders", value: formatCount(summary.rejectedOrders) },
       ],
@@ -70,7 +74,11 @@ export function AdminStatisticsCards({
       description: "Payout request activity",
       metrics: [
         { label: "Total withdrawals", value: formatCount(summary.totalWithdrawals) },
-        { label: "Pending withdrawals", value: formatCount(summary.pendingWithdrawals) },
+        {
+          label: "Pending withdrawals",
+          value: formatCount(summary.pendingWithdrawals),
+          featured: true,
+        },
         {
           label: "Completed withdrawals",
           value: formatCount(summary.completedWithdrawals),
@@ -83,7 +91,11 @@ export function AdminStatisticsCards({
       metrics: [
         { label: "Total commission", value: formatCurrency(summary.totalCommission) },
         { label: "Cashback paid", value: formatCurrency(summary.totalCashbackPaid) },
-        { label: "Platform revenue", value: formatCurrency(summary.platformRevenue) },
+        {
+          label: "Platform revenue",
+          value: formatCurrency(summary.platformRevenue),
+          featured: true,
+        },
       ],
     },
   ];
@@ -99,15 +111,12 @@ export function AdminStatisticsCards({
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2">
               {section.metrics.map((metric) => (
-                <div
+                <AdminStatBlock
                   key={metric.label}
-                  className="rounded-lg border bg-muted/30 px-3 py-2"
-                >
-                  <p className="text-xs text-muted-foreground">{metric.label}</p>
-                  <p className="mt-1 text-lg font-semibold tracking-tight">
-                    {metric.value}
-                  </p>
-                </div>
+                  label={metric.label}
+                  value={metric.value}
+                  featured={"featured" in metric && metric.featured}
+                />
               ))}
             </div>
           </CardContent>
@@ -117,13 +126,58 @@ export function AdminStatisticsCards({
   );
 }
 
+interface AdminPendingActionsBannerProps {
+  pendingWithdrawals: number;
+}
+
+export function AdminPendingActionsBanner({
+  pendingWithdrawals,
+}: AdminPendingActionsBannerProps) {
+  if (pendingWithdrawals <= 0) {
+    return null;
+  }
+
+  return (
+    <Card className="border-l-[3px] border-l-warning bg-warning-muted">
+      <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-3">
+          <AlertCircle className="mt-0.5 size-5 shrink-0 text-warning" aria-hidden="true" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">
+              {formatCount(pendingWithdrawals)} withdrawal
+              {pendingWithdrawals === 1 ? "" : "s"} awaiting review
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Pending payouts need admin approval before bank transfer.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/admin/withdrawals"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          Review withdrawals
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 function AdminStatisticsCardsSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       {Array.from({ length: 4 }).map((_, index) => (
         <Card key={index}>
-          <CardContent className="flex items-center justify-center py-12">
-            <Loader2 className="size-4 animate-spin text-muted-foreground" />
+          <CardHeader className="space-y-2 pb-3">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {Array.from({ length: 3 }).map((__, metricIndex) => (
+                <Skeleton key={metricIndex} className="h-14 w-full rounded-lg" />
+              ))}
+            </div>
           </CardContent>
         </Card>
       ))}

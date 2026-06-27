@@ -12,7 +12,7 @@
 
 
 
-**Last updated:** June 27, 2026 — User dashboard, orders page, and withdrawals page refactors applied per `docs/DESIGN.md`.
+**Last updated:** June 27, 2026 — User dashboard, orders, withdrawals, and admin area refactors applied per `docs/DESIGN.md`.
 
 
 
@@ -24,11 +24,11 @@
 
 
 
-The frontend is structurally sound — Shadcn/UI cards, consistent page shells, and React Query loading/error patterns are in place. The **user dashboard (`/dashboard`)**, **orders page (`/dashboard/orders`)**, and **withdrawals page (`/dashboard/withdrawals`)** have been refactored to apply the design system: brand tokens, KPI hierarchy, skeleton loading, shared empty states, mobile navigation, responsive tables, unified status badges, and enhanced filters/pagination.
+The frontend is structurally sound — Shadcn/UI cards, consistent page shells, and React Query loading/error patterns are in place. The **user dashboard**, **orders**, **withdrawals**, and **admin area (`/admin`)** have been refactored to apply the design system: brand tokens, KPI hierarchy, skeleton loading, shared empty states, mobile navigation, responsive tables, unified status badges, enhanced filters/pagination, and admin action menus with confirmation dialogs.
 
 
 
-Remaining gaps are primarily **outside user-facing dashboard flows**: admin table action density, affiliate history page, landing page, locale, and auth loading polish.
+Remaining gaps are primarily **outside refactored areas**: affiliate history page, landing page, locale, and auth loading polish.
 
 
 
@@ -169,6 +169,57 @@ Additional withdrawals-specific improvements:
 
 
 
+## Admin Area Resolution Status
+
+
+
+The following audit items were **resolved** for `/admin` and its feature components:
+
+
+
+| # | Issue | Status | Resolution |
+
+|---|-------|--------|------------|
+
+| 1 | No mobile navigation (admin) | ✅ Resolved | Hamburger drawer nav (`admin-mobile-nav.tsx`) in admin header |
+
+| 2 | Static header title | ✅ Resolved | `admin-header.tsx` derives title from `admin-navigation.ts`; page-level `<h1>` removed |
+
+| 3 | Data tables desktop-only | ✅ Resolved | All admin tables use stacked row cards on `< md`, table on `≥ md` |
+
+| 9 | Chart colors are grayscale | ✅ Resolved (admin) | Orders chart uses `--chart-orders`; revenue chart uses `--chart-revenue` |
+
+| 10 | Inconsistent empty states | ✅ Resolved | Shared `EmptyState` on admin tables, charts, and recent widgets |
+
+| 11 | Weak loading states | ✅ Resolved | Skeleton loaders for statistics cards, charts, tables, and widgets |
+
+| 12 | No fetch/refetch feedback | ✅ Resolved | `TableFetchOverlay` on all admin list tables during `isFetching` |
+
+| 13 | Admin table action density | ✅ Resolved | `RowActionsMenu` (⋯) for secondary actions; primary action standalone; `ConfirmDialog` for reject/suspend/complete |
+
+| 14 | Inconsistent table styling | ✅ Resolved | Design-system table spec across admin tables and dashboard widgets |
+
+| 15 | Status badge semantics | ✅ Resolved | `OrderStatusBadge`, `WithdrawalStatusBadge`, `UserStatusBadge` used throughout admin |
+
+| 16 | Filter bars lack grouping | ✅ Resolved | Grouped filter containers with labels; collapsible on mobile for all admin list pages |
+
+| 17 | Pagination is minimal | ✅ Resolved | Enhanced `OrdersPagination` with range + page numbers in all admin tables |
+
+
+
+Additional admin-specific improvements:
+
+- **Statistics visibility:** Flat `AdminStatBlock` metric grids (no nested borders); featured metrics for operational urgency (pending withdrawals, pending orders)
+- **Pending actions banner:** Dashboard surfaces pending withdrawal count with direct link to review
+- **Faster scanning:** Amount/user as primary fields in mobile cards; status descriptions on withdrawal rows; mono order IDs
+- **Navigation config:** Centralized `admin-navigation.ts` for sidebar, mobile nav, and header titles
+
+
+
+---
+
+
+
 ## Top 20 UI Problems
 
 
@@ -177,11 +228,11 @@ Additional withdrawals-specific improvements:
 
 |---|---------|----------|---------------|------------------|
 
-| 1 | **No mobile navigation.** Sidebars in `dashboard-sidebar.tsx` and `admin-sidebar.tsx` use `hidden … md:block` with no Sheet, bottom tab bar, or hamburger menu. Below `md`, users cannot reach Orders, Withdrawals, Affiliate Links, or Admin pages except via direct URL. | **Critical** | Add a mobile nav pattern: hamburger + `Sheet` drawer mirroring sidebar links, or a fixed bottom tab bar for the 4–5 primary routes. Show current route indicator and persist across pages. | ✅ User dashboard |
+| 1 | **No mobile navigation.** Sidebars in `dashboard-sidebar.tsx` and `admin-sidebar.tsx` use `hidden … md:block` with no Sheet, bottom tab bar, or hamburger menu. Below `md`, users cannot reach Orders, Withdrawals, Affiliate Links, or Admin pages except via direct URL. | **Critical** | Add a mobile nav pattern: hamburger + `Sheet` drawer mirroring sidebar links, or a fixed bottom tab bar for the 4–5 primary routes. Show current route indicator and persist across pages. | ✅ User dashboard + admin hamburger nav |
 
-| 2 | **Static header title on every page.** `dashboard-header.tsx` always renders `<h1>Dashboard</h1>` regardless of route (Orders, Withdrawals, etc.), while each page also has its own `<h1>`. This creates duplicate headings and breaks wayfinding. | **High** | Drive header title from route metadata (e.g. a nav config map). Demote page-level heading to `<h2>` or remove redundant title — keep one primary heading per view. | ✅ User dashboard shell |
+| 2 | **Static header title on every page.** `dashboard-header.tsx` always renders `<h1>Dashboard</h1>` regardless of route (Orders, Withdrawals, etc.), while each page also has its own `<h1>`. This creates duplicate headings and breaks wayfinding. | **High** | Drive header title from route metadata (e.g. a nav config map). Demote page-level heading to `<h2>` or remove redundant title — keep one primary heading per view. | ✅ User dashboard + admin shells |
 
-| 3 | **Data tables are desktop-only.** All tables (`orders-table`, `withdrawals-table`, admin tables) enforce `min-w-[640px]`–`min-w-[960px]` with horizontal scroll only. No responsive card/list fallback for mobile. | **High** | Introduce a shared `DataTable` with a `mobileCardView` breakpoint: stack row fields as label/value pairs on `< sm`. Keep table view for `≥ md`. Prioritize Orders and Admin Withdrawals first. | ✅ User orders + withdrawals pages |
+| 3 | **Data tables are desktop-only.** All tables (`orders-table`, `withdrawals-table`, admin tables) enforce `min-w-[640px]`–`min-w-[960px]` with horizontal scroll only. No responsive card/list fallback for mobile. | **High** | Introduce a shared `DataTable` with a `mobileCardView` breakpoint: stack row fields as label/value pairs on `< sm`. Keep table view for `≥ md`. Prioritize Orders and Admin Withdrawals first. | ✅ User + admin pages |
 
 | 4 | **Inverted KPI card hierarchy.** In `dashboard-summary-cards.tsx` and `earnings-summary-cards.tsx`, `CardDescription` (secondary) renders **above** `CardTitle` (primary). Users scan description text before the metric name. | **High** | Swap order: `CardTitle` → metric value → `CardDescription`. Make the currency value the largest element (`text-2xl`/`text-3xl`). Optionally highlight Available Balance with accent border or subtle background. | ✅ Dashboard + orders + withdrawals balance |
 
@@ -193,23 +244,23 @@ Additional withdrawals-specific improvements:
 
 | 8 | **No brand color or visual identity.** Entire theme in `globals.css` is neutral oklch grayscale. Primary, charts, and sidebar share the same monochrome palette. Product is indistinguishable from a generic Shadcn starter. | **Medium** | Define a brand accent (e.g. emerald/teal for cashback growth). Apply to primary actions, Available Balance, chart bars, and active nav item. Keep neutrals for chrome; use color semantically for money and status. | ✅ Global + dashboard |
 
-| 9 | **Chart colors are grayscale.** `--chart-1` through `--chart-5` are gray shades. Bar charts (`earnings-chart.tsx`, admin charts) lack visual differentiation and feel like wireframes. | **Medium** | Assign distinct hues per series (cashback = brand green, orders = blue, revenue = purple). Ensure WCAG contrast for axis labels. Add a legend when multiple series exist. | ✅ User dashboard chart |
+| 9 | **Chart colors are grayscale.** `--chart-1` through `--chart-5` are gray shades. Bar charts (`earnings-chart.tsx`, admin charts) lack visual differentiation and feel like wireframes. | **Medium** | Assign distinct hues per series (cashback = brand green, orders = blue, revenue = purple). Ensure WCAG contrast for axis labels. Add a legend when multiple series exist. | ✅ User + admin charts |
 
-| 10 | **Inconsistent empty states.** Only dashboard has icon + headline + CTA (`DashboardEmptyState`). Orders, withdrawals, affiliate history, and admin lists use a single centered `<p>` with muted text — no illustration, no next-step action. | **Medium** | Create a shared `EmptyState` component: icon, title, description, optional CTA. Use context-specific copy and actions (e.g. Orders → "Generate a link"; filtered views → "Clear filters" button). | ✅ Dashboard + orders + withdrawals pages |
+| 10 | **Inconsistent empty states.** Only dashboard has icon + headline + CTA (`DashboardEmptyState`). Orders, withdrawals, affiliate history, and admin lists use a single centered `<p>` with muted text — no illustration, no next-step action. | **Medium** | Create a shared `EmptyState` component: icon, title, description, optional CTA. Use context-specific copy and actions (e.g. Orders → "Generate a link"; filtered views → "Clear filters" button). | ✅ Dashboard + orders + withdrawals + admin |
 
-| 11 | **Weak loading states — spinner-only.** Tables and charts show centered `Loader2` + text. Summary cards show a spinner inside empty cards rather than skeleton shapes. No layout-preserving placeholders. | **Medium** | Add Shadcn `Skeleton` for cards (title bar + value block), table rows (5–8 shimmer rows), and chart area. Keeps layout stable and reduces perceived load time. | ✅ Dashboard + orders + withdrawals pages |
+| 11 | **Weak loading states — spinner-only.** Tables and charts show centered `Loader2` + text. Summary cards show a spinner inside empty cards rather than skeleton shapes. No layout-preserving placeholders. | **Medium** | Add Shadcn `Skeleton` for cards (title bar + value block), table rows (5–8 shimmer rows), and chart area. Keeps layout stable and reduces perceived load time. | ✅ Dashboard + orders + withdrawals + admin |
 
-| 12 | **No fetch/refetch feedback during pagination.** When `isFetching` is true, pagination buttons disable but table content doesn't indicate background refresh — users may think the app is frozen. | **Medium** | Add a subtle top-of-table progress bar or opacity overlay (`opacity-60 pointer-events-none`) while `isFetching`. Optionally show "Updating…" near pagination summary. | ✅ Orders + withdrawals pages |
+| 12 | **No fetch/refetch feedback during pagination.** When `isFetching` is true, pagination buttons disable but table content doesn't indicate background refresh — users may think the app is frozen. | **Medium** | Add a subtle top-of-table progress bar or opacity overlay (`opacity-60 pointer-events-none`) while `isFetching`. Optionally show "Updating…" near pagination summary. | ✅ Orders + withdrawals + admin pages |
 
-| 13 | **Admin table action density.** `admin-withdrawals-table.tsx` rows can show View + Approve + Reject (+ Complete) as full labeled buttons. On tablet/mobile this wraps into multi-line action clusters. | **Medium** | Collapse row actions into a `DropdownMenu` (⋯) with labeled items. Keep primary action (Approve) as standalone only on Pending rows. Add confirmation dialogs for destructive actions. | ⏳ Open (admin) |
+| 13 | **Admin table action density.** `admin-withdrawals-table.tsx` rows can show View + Approve + Reject (+ Complete) as full labeled buttons. On tablet/mobile this wraps into multi-line action clusters. | **Medium** | Collapse row actions into a `DropdownMenu` (⋯) with labeled items. Keep primary action (Approve) as standalone only on Pending rows. Add confirmation dialogs for destructive actions. | ✅ Admin tables |
 
-| 14 | **Inconsistent table styling across surfaces.** Widget tables (`recent-orders-widget.tsx`) use `px-2 py-3`, no header background, no border wrapper. Full-page tables use `px-4 py-3`, `bg-muted/40` thead, and `rounded-lg border`. | **Medium** | Extract shared `Table`, `TableHeader`, `TableRow`, `TableCell` primitives (Shadcn table). Enforce one padding scale (`px-4 py-3`) and one header treatment everywhere. | ✅ Dashboard widget + orders + withdrawals pages |
+| 14 | **Inconsistent table styling across surfaces.** Widget tables (`recent-orders-widget.tsx`) use `px-2 py-3`, no header background, no border wrapper. Full-page tables use `px-4 py-3`, `bg-muted/40` thead, and `rounded-lg border`. | **Medium** | Extract shared `Table`, `TableHeader`, `TableRow`, `TableCell` primitives (Shadcn table). Enforce one padding scale (`px-4 py-3`) and one header treatment everywhere. | ✅ User + admin surfaces |
 
-| 15 | **Status badge semantics differ by domain.** Orders: Approved = emerald. Withdrawals: Approved = blue, Completed = emerald. Users may misread "Approved" withdrawal as "paid/completed." | **Medium** | Align status color language platform-wide: Pending = amber, Success/Completed = emerald, Rejected = rose, In-progress/Approved (not yet paid) = blue. Document in a shared `StatusBadge` component. | ✅ Orders + withdrawals (`StatusBadge`); ⏳ Admin |
+| 15 | **Status badge semantics differ by domain.** Orders: Approved = emerald. Withdrawals: Approved = blue, Completed = emerald. Users may misread "Approved" withdrawal as "paid/completed." | **Medium** | Align status color language platform-wide: Pending = amber, Success/Completed = emerald, Rejected = rose, In-progress/Approved (not yet paid) = blue. Document in a shared `StatusBadge` component. | ✅ Platform-wide (`StatusBadge`) |
 
-| 16 | **Filter bars lack grouping and labels.** Status filters are unlabeled button rows inside card headers. Admin order page stacks search, date range, and status filters with only `gap-4` — visually flat. | **Low** | Add a "Filter by status" label above chip rows. Wrap filter groups in a subtle `bg-muted/30 rounded-lg p-4` container. On mobile, collapse filters into a "Filters" drawer. | ✅ User orders + withdrawals pages; ⏳ Admin |
+| 16 | **Filter bars lack grouping and labels.** Status filters are unlabeled button rows inside card headers. Admin order page stacks search, date range, and status filters with only `gap-4` — visually flat. | **Low** | Add a "Filter by status" label above chip rows. Wrap filter groups in a subtle `bg-muted/30 rounded-lg p-4` container. On mobile, collapse filters into a "Filters" drawer. | ✅ User + admin list pages |
 
-| 17 | **Pagination is minimal.** All pagination components only offer Previous/Next. No page numbers, jump-to-page, or page-size selector. Poor for admin datasets. | **Low** | Add numbered page buttons (truncate with ellipsis for large sets). Show "Rows per page" select (10/20/50). Display "Showing 1–20 of 143" instead of only "page X of Y." | ✅ Orders + withdrawals pages; ⏳ Admin/affiliate |
+| 17 | **Pagination is minimal.** All pagination components only offer Previous/Next. No page numbers, jump-to-page, or page-size selector. Poor for admin datasets. | **Low** | Add numbered page buttons (truncate with ellipsis for large sets). Show "Rows per page" select (10/20/50). Display "Showing 1–20 of 143" instead of only "page X of Y." | ✅ User + admin list pages |
 
 | 18 | **Public homepage is empty.** `(public)/page.tsx` returns `null` — visitors see header/footer with blank content. No value proposition, CTA, or trust signals. | **Low** | Build a minimal landing: hero headline, 3-step "How cashback works", Google login CTA, supported merchants (Shopee). Match auth card visual language. | ⏳ Open |
 
@@ -261,7 +312,7 @@ Additional withdrawals-specific improvements:
 
 - **Admin dashboard structure:** Statistics cards grouped by domain (users, orders, withdrawals, revenue) with charts and recent-activity widgets follows SaaS admin conventions.
 
-- **Shared design components:** `MetricCard`, `EmptyState`, `StatusBadge`, `Skeleton`, and `dashboard-navigation.ts` config — reuse on remaining pages.
+- **Shared design components:** `MetricCard`, `EmptyState`, `StatusBadge`, `AdminStatBlock`, `RowActionsMenu`, `ConfirmDialog`, `TableFetchOverlay`, and navigation configs — reuse on remaining pages.
 
 
 
@@ -279,7 +330,7 @@ Additional withdrawals-specific improvements:
 
 2. ~~Dynamic header titles / fix duplicate `<h1>`~~ ✅ User dashboard shell
 
-3. Responsive table card view — ✅ User orders + withdrawals pages; ⏳ admin pages
+3. Responsive table card view — ✅ User + admin pages
 
 4. ~~Fix font token wiring~~ ✅
 
@@ -299,17 +350,17 @@ Additional withdrawals-specific improvements:
 
 10. ~~Withdrawals page refactor (form trust, history table, status badges, responsive)~~ ✅
 
+11. ~~Admin area refactor (statistics, tables, filters, actions, mobile nav)~~ ✅
 
 
-### Phase 3 — Admin & polish (Medium / Low)
 
-11. Row action menus + confirmation dialogs
+### Phase 3 — Polish (Low)
 
-12. Shared table primitives and status badge system — ✅ `StatusBadge` created; roll out to admin
+12. Landing page + locale decision
 
-13. Enhanced pagination — ✅ User orders + withdrawals; roll out to admin/affiliate
+13. Auth loading polish
 
-14. Landing page + locale decision
+14. Affiliate history page refactor
 
 
 
@@ -337,5 +388,5 @@ Additional withdrawals-specific improvements:
 
 
 
-*Dashboard refactor completed June 27, 2026. Orders page refactor completed June 27, 2026. Withdrawals page refactor completed June 27, 2026. See `docs/DESIGN.md` for the authoritative design system.*
+*Dashboard refactor completed June 27, 2026. Orders page refactor completed June 27, 2026. Withdrawals page refactor completed June 27, 2026. Admin area refactor completed June 27, 2026. See `docs/DESIGN.md` for the authoritative design system.*
 

@@ -1,7 +1,9 @@
 "use client";
 
+import { BarChart3 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 
+import { EmptyState } from "@/components/empty-state";
 import {
   Card,
   CardContent,
@@ -10,13 +12,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toOrdersChartData } from "@/features/admin/dashboard/lib/chart-formatters";
 import type { MonthlyOrderCount } from "@/types/admin-dashboard";
 
 const chartConfig = {
   orders: {
     label: "Orders",
-    color: "var(--chart-1)",
+    color: "var(--chart-orders)",
   },
 };
 
@@ -39,45 +42,30 @@ export function AdminOrdersChart({
         <CardDescription>Order volume over the last 6 months</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-            Loading chart...
-          </div>
-        ) : null}
+        {isLoading ? <Skeleton className="h-64 w-full rounded-xl" /> : null}
 
         {!isLoading && !hasData ? (
-          <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-            No order data for the last 6 months.
-          </div>
+          <EmptyState
+            icon={BarChart3}
+            title="No order data"
+            description="No order volume recorded for the last 6 months."
+            className="py-8"
+          />
         ) : null}
 
         {!isLoading && hasData ? (
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <BarChart accessibilityLayer data={chartData}>
               <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                allowDecimals={false}
-              />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+              <YAxis tickLine={false} axisLine={false} tickMargin={8} allowDecimals={false} />
               <Tooltip
                 cursor={false}
                 content={({ active, payload, label }) => {
-                  if (!active || !payload?.length) {
-                    return null;
-                  }
-
+                  if (!active || !payload?.length) return null;
                   const value = payload[0]?.value;
-
                   return (
-                    <div className="rounded-lg border bg-background px-3 py-2 text-xs shadow-xl">
+                    <div className="rounded-lg border border-border bg-background px-3 py-2 text-xs">
                       <p className="mb-1 font-medium">{label}</p>
                       <p className="text-muted-foreground">
                         Orders:{" "}
@@ -89,11 +77,7 @@ export function AdminOrdersChart({
                   );
                 }}
               />
-              <Bar
-                dataKey="orders"
-                fill="var(--color-orders)"
-                radius={[4, 4, 0, 0]}
-              />
+              <Bar dataKey="orders" fill="var(--color-orders)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ChartContainer>
         ) : null}

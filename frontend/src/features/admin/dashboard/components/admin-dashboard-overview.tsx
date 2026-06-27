@@ -6,7 +6,10 @@ import { AdminRecentOrdersWidget } from "@/features/admin/dashboard/components/a
 import { AdminRecentUsersWidget } from "@/features/admin/dashboard/components/admin-recent-users-widget";
 import { AdminRecentWithdrawalsWidget } from "@/features/admin/dashboard/components/admin-recent-withdrawals-widget";
 import { AdminRevenueChart } from "@/features/admin/dashboard/components/admin-revenue-chart";
-import { AdminStatisticsCards } from "@/features/admin/dashboard/components/admin-statistics-cards";
+import {
+  AdminPendingActionsBanner,
+  AdminStatisticsCards,
+} from "@/features/admin/dashboard/components/admin-statistics-cards";
 import { emptyAdminDashboardSummary } from "@/types/admin-dashboard";
 
 export function AdminDashboardOverview() {
@@ -15,6 +18,10 @@ export function AdminDashboardOverview() {
 
   return (
     <div className="space-y-6">
+      {!isLoading ? (
+        <AdminPendingActionsBanner pendingWithdrawals={summary.pendingWithdrawals} />
+      ) : null}
+
       <AdminStatisticsCards
         summary={summary}
         isLoading={isLoading}

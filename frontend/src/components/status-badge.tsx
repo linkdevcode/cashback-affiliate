@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { OrderStatus } from "@/types/order";
+import { UserStatusValue, type UserStatus } from "@/types/auth";
 import { WithdrawalStatus } from "@/types/withdrawal";
 
 type StatusBadgeVariant = "pending" | "success" | "info" | "destructive" | "muted";
@@ -91,6 +92,37 @@ export function WithdrawalStatusBadge({
     <StatusBadge
       label={label}
       variant={getWithdrawalStatusVariant(status)}
+      className={className}
+    />
+  );
+}
+
+export function getUserStatusVariant(status: UserStatus): StatusBadgeVariant {
+  switch (status) {
+    case UserStatusValue.Active:
+      return "success";
+    case UserStatusValue.Suspended:
+      return "destructive";
+    case UserStatusValue.Deleted:
+      return "muted";
+    default:
+      return "muted";
+  }
+}
+
+export function UserStatusBadge({
+  status,
+  label,
+  className,
+}: {
+  status: UserStatus;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <StatusBadge
+      label={label}
+      variant={getUserStatusVariant(status)}
       className={className}
     />
   );

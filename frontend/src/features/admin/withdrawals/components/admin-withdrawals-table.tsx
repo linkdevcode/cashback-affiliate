@@ -1,31 +1,41 @@
 "use client";
 
-import { CheckCircle2, Eye, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { EmptyState } from "@/components/empty-state";
+import { RowActionsMenu } from "@/components/row-actions-menu";
+import { WithdrawalStatusBadge } from "@/components/status-badge";
+import { TableFetchOverlay } from "@/components/table-fetch-overlay";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AdminWithdrawalDetailModal } from "@/features/admin/withdrawals/components/admin-withdrawal-detail-modal";
-import { AdminWithdrawalSearchFilter } from "@/features/admin/withdrawals/components/admin-withdrawal-search-filter";
+import { AdminWithdrawalFilters } from "@/features/admin/withdrawals/components/admin-withdrawal-filters";
 import { useAdminWithdrawals } from "@/features/admin/withdrawals/hooks/use-admin-withdrawals";
 import { useApproveWithdrawal } from "@/features/admin/withdrawals/hooks/use-approve-withdrawal";
 import { useCompleteWithdrawal } from "@/features/admin/withdrawals/hooks/use-complete-withdrawal";
 import { useRejectWithdrawal } from "@/features/admin/withdrawals/hooks/use-reject-withdrawal";
+import { OrdersPagination } from "@/features/orders/components/orders-pagination";
 import {
   formatCurrency,
   formatDateTime,
 } from "@/features/orders/lib/order-formatters";
-import { getWithdrawalStatusBadgeClass } from "@/features/withdrawals/lib/withdrawal-formatters";
-import { WithdrawalStatusFilter } from "@/features/withdrawals/components/withdrawal-status-filter";
-import { UsersPagination } from "@/features/admin/users/components/users-pagination";
+import { getWithdrawalStatusDescription } from "@/features/withdrawals/lib/withdrawal-formatters";
 import { isApiError } from "@/services/api-client";
-import { WithdrawalStatus, type WithdrawalStatusFilter as WithdrawalStatusFilterType } from "@/types/withdrawal";
+import type { AdminWithdrawalListItem } from "@/types/admin-withdrawal";
+import {
+  WithdrawalStatus,
+  type WithdrawalStatusFilter as WithdrawalStatusFilterType,
+} from "@/types/withdrawal";
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 400;
@@ -39,6 +49,10 @@ export function AdminWithdrawalsTable() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingActionId, setPendingActionId] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    withdrawalId: string;
+    type: "reject" | "complete";
+  } | null>(null);
 
   const approveWithdrawal = useApproveWithdrawal();
   const rejectWithdrawal = useRejectWithdrawal();
@@ -62,8 +76,10 @@ export function AdminWithdrawalsTable() {
     status,
   });
 
-  const handleStatusFilterChange = (value: WithdrawalStatusFilterType) => {
-    setStatusFilter(value);
+  const handleClearFilters = () => {
+    setStatusFilter("all");
+    setUserInput("");
+    setUserSearch("");
     setPage(1);
   };
 
@@ -71,15 +87,6 @@ export function AdminWithdrawalsTable() {
     setActionError(null);
     setSelectedWithdrawalId(withdrawalId);
     setIsDetailOpen(true);
-  };
-
-  const handleDetailOpenChange = (open: boolean) => {
-    setIsDetailOpen(open);
-
-    if (!open) {
-      setSelectedWithdrawalId(null);
-      setActionError(null);
-    }
   };
 
   const handleApprove = async (withdrawalId: string) => {
@@ -95,25 +102,21 @@ export function AdminWithdrawalsTable() {
     }
   };
 
-  const handleReject = async (withdrawalId: string) => {
-    setActionError(null);
-    setPendingActionId(withdrawalId);
-
-    try {
-      await rejectWithdrawal.mutateAsync({ withdrawalId });
-    } catch (actionErr) {
-      setActionError(getErrorMessage(actionErr));
-    } finally {
-      setPendingActionId(null);
+  const handleConfirmAction = async () => {
+    if (!confirmAction) {
+      return;
     }
-  };
 
-  const handleComplete = async (withdrawalId: string) => {
     setActionError(null);
-    setPendingActionId(withdrawalId);
+    setPendingActionId(confirmAction.withdrawalId);
 
     try {
-      await completeWithdrawal.mutateAsync(withdrawalId);
+      if (confirmAction.type === "reject") {
+        await rejectWithdrawal.mutateAsync({ withdrawalId: confirmAction.withdrawalId });
+      } else {
+        await completeWithdrawal.mutateAsync(confirmAction.withdrawalId);
+      }
+      setConfirmAction(null);
     } catch (actionErr) {
       setActionError(getErrorMessage(actionErr));
     } finally {
@@ -126,6 +129,9 @@ export function AdminWithdrawalsTable() {
     rejectWithdrawal.isPending ||
     completeWithdrawal.isPending;
 
+  const hasActiveFilters = Boolean(userSearch) || statusFilter !== "all";
+  const isEmpty = !isLoading && !isError && data?.items.length === 0;
+
   return (
     <>
       <Card>
@@ -137,16 +143,16 @@ export function AdminWithdrawalsTable() {
             </CardDescription>
           </div>
 
-          <AdminWithdrawalSearchFilter
+          <AdminWithdrawalFilters
             user={userInput}
+            statusFilter={statusFilter}
             onUserChange={setUserInput}
-            disabled={isLoading || isFetching}
-          />
-
-          <WithdrawalStatusFilter
-            value={statusFilter}
-            onChange={handleStatusFilterChange}
-            disabled={isLoading || isFetching}
+            onStatusFilterChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+            onClearFilters={handleClearFilters}
+            disabled={isLoading}
           />
         </CardHeader>
 
@@ -157,140 +163,300 @@ export function AdminWithdrawalsTable() {
             </p>
           ) : null}
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              Loading withdrawals...
-            </div>
-          ) : null}
-
           {isError ? (
             <p className="text-sm text-destructive" role="alert">
               {getErrorMessage(error)}
             </p>
           ) : null}
 
-          {!isLoading && !isError && data?.items.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-              No withdrawals found matching your filters.
-            </p>
+          {isLoading ? <AdminWithdrawalsTableSkeleton /> : null}
+
+          {isEmpty && !hasActiveFilters ? (
+            <EmptyState
+              icon={Wallet}
+              title="No withdrawals yet"
+              description="Withdrawal requests will appear here when users submit payout requests."
+            />
+          ) : null}
+
+          {isEmpty && hasActiveFilters ? (
+            <EmptyState
+              icon={Wallet}
+              title="No matching withdrawals"
+              description="No withdrawals found matching your filters."
+              action={
+                <Button type="button" variant="ghost" size="sm" onClick={handleClearFilters}>
+                  Clear filters
+                </Button>
+              }
+            />
           ) : null}
 
           {!isLoading && !isError && data && data.items.length > 0 ? (
-            <div className="overflow-x-auto rounded-lg border">
-              <table className="w-full min-w-[900px] text-left text-sm">
-                <thead className="border-b bg-muted/40">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">User</th>
-                    <th className="px-4 py-3 font-medium">Amount</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Requested date</th>
-                    <th className="px-4 py-3 font-medium text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.items.map((withdrawal) => {
-                    const isRowActionPending =
-                      isActionPending && pendingActionId === withdrawal.id;
-
-                    return (
-                      <tr key={withdrawal.id} className="border-b last:border-b-0">
-                        <td className="px-4 py-3">
-                          <p className="font-medium">{withdrawal.user.fullName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {withdrawal.user.email}
-                          </p>
-                        </td>
-                        <td className="px-4 py-3 font-medium">
-                          {formatCurrency(withdrawal.amount)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getWithdrawalStatusBadgeClass(withdrawal.status)}`}
-                          >
-                            {withdrawal.statusName}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                          {formatDateTime(withdrawal.requestedAt)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap justify-end gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={isRowActionPending}
-                              onClick={() => handleViewDetail(withdrawal.id)}
-                            >
-                              <Eye />
-                              View
-                            </Button>
-
-                            {withdrawal.status === WithdrawalStatus.Pending ? (
-                              <>
-                                <Button
-                                  type="button"
-                                  variant="default"
-                                  size="sm"
-                                  disabled={isRowActionPending}
-                                  onClick={() => void handleApprove(withdrawal.id)}
-                                >
-                                  <CheckCircle2 />
-                                  Approve
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  disabled={isRowActionPending}
-                                  onClick={() => void handleReject(withdrawal.id)}
-                                >
-                                  <XCircle />
-                                  Reject
-                                </Button>
-                              </>
-                            ) : null}
-
-                            {withdrawal.status === WithdrawalStatus.Approved ? (
-                              <Button
-                                type="button"
-                                variant="default"
-                                size="sm"
-                                disabled={isRowActionPending}
-                                onClick={() => void handleComplete(withdrawal.id)}
-                              >
-                                <CheckCircle2 />
-                                Complete
-                              </Button>
-                            ) : null}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <TableFetchOverlay isFetching={isFetching}>
+              <AdminWithdrawalsDesktopTable
+                withdrawals={data.items}
+                pendingActionId={pendingActionId}
+                isActionPending={isActionPending}
+                onViewDetail={handleViewDetail}
+                onApprove={handleApprove}
+                onRequestReject={(id) => setConfirmAction({ withdrawalId: id, type: "reject" })}
+                onRequestComplete={(id) => setConfirmAction({ withdrawalId: id, type: "complete" })}
+              />
+              <AdminWithdrawalsMobileList
+                withdrawals={data.items}
+                pendingActionId={pendingActionId}
+                isActionPending={isActionPending}
+                onViewDetail={handleViewDetail}
+                onApprove={handleApprove}
+                onRequestReject={(id) => setConfirmAction({ withdrawalId: id, type: "reject" })}
+                onRequestComplete={(id) => setConfirmAction({ withdrawalId: id, type: "complete" })}
+              />
+            </TableFetchOverlay>
           ) : null}
+        </CardContent>
 
-          {!isLoading && !isError && data && data.totalCount > 0 ? (
-            <UsersPagination
+        {!isLoading && !isError && data && data.totalCount > 0 ? (
+          <CardFooter className="border-t">
+            <OrdersPagination
               page={data.page}
               pageSize={data.pageSize}
               totalCount={data.totalCount}
               onPageChange={setPage}
               disabled={isFetching}
             />
-          ) : null}
-        </CardContent>
+          </CardFooter>
+        ) : null}
       </Card>
 
       <AdminWithdrawalDetailModal
         withdrawalId={selectedWithdrawalId}
         open={isDetailOpen}
-        onOpenChange={handleDetailOpenChange}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedWithdrawalId(null);
+            setActionError(null);
+          }
+          setIsDetailOpen(open);
+        }}
       />
+
+      <ConfirmDialog
+        open={confirmAction?.type === "reject"}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title="Reject withdrawal?"
+        description="The user's balance will be restored. This action cannot be undone."
+        confirmLabel="Reject withdrawal"
+        destructive
+        loading={isActionPending}
+        onConfirm={() => void handleConfirmAction()}
+      />
+
+      <ConfirmDialog
+        open={confirmAction?.type === "complete"}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title="Mark withdrawal as completed?"
+        description="Confirm that the bank transfer has been sent to the user."
+        confirmLabel="Mark completed"
+        loading={isActionPending}
+        onConfirm={() => void handleConfirmAction()}
+      />
+    </>
+  );
+}
+
+interface AdminWithdrawalsListProps {
+  withdrawals: AdminWithdrawalListItem[];
+  pendingActionId: string | null;
+  isActionPending: boolean;
+  onViewDetail: (id: string) => void;
+  onApprove: (id: string) => void;
+  onRequestReject: (id: string) => void;
+  onRequestComplete: (id: string) => void;
+}
+
+function AdminWithdrawalsDesktopTable({
+  withdrawals,
+  pendingActionId,
+  isActionPending,
+  onViewDetail,
+  onApprove,
+  onRequestReject,
+  onRequestComplete,
+}: AdminWithdrawalsListProps) {
+  return (
+    <div className="hidden overflow-hidden rounded-xl border border-border md:block">
+      <table className="w-full text-left text-sm">
+        <thead className="sticky top-0 z-10 border-b border-border bg-muted/40">
+          <tr>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">User</th>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Amount</th>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">Requested</th>
+            <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {withdrawals.map((withdrawal) => (
+            <tr
+              key={withdrawal.id}
+              className="border-b border-border last:border-b-0 hover:bg-muted/30"
+            >
+              <td className="px-4 py-3">
+                <p className="font-medium">{withdrawal.user.fullName}</p>
+                <p className="text-xs text-muted-foreground">{withdrawal.user.email}</p>
+              </td>
+              <td className="px-4 py-3 text-base font-semibold tabular-nums">
+                {formatCurrency(withdrawal.amount)}
+              </td>
+              <td className="px-4 py-3">
+                <WithdrawalStatusCell withdrawal={withdrawal} />
+              </td>
+              <td className="px-4 py-3 text-xs text-muted-foreground">
+                {formatDateTime(withdrawal.requestedAt)}
+              </td>
+              <td className="px-4 py-3">
+                <WithdrawalRowActions
+                  withdrawal={withdrawal}
+                  pendingActionId={pendingActionId}
+                  isActionPending={isActionPending}
+                  onViewDetail={onViewDetail}
+                  onApprove={onApprove}
+                  onRequestReject={onRequestReject}
+                  onRequestComplete={onRequestComplete}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AdminWithdrawalsMobileList(props: AdminWithdrawalsListProps) {
+  return (
+    <div className="space-y-3 md:hidden">
+      {props.withdrawals.map((withdrawal) => (
+        <article key={withdrawal.id} className="space-y-3 rounded-xl border border-border p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1">
+              <p className="text-xl font-semibold tabular-nums">{formatCurrency(withdrawal.amount)}</p>
+              <p className="truncate font-medium">{withdrawal.user.fullName}</p>
+              <p className="truncate text-xs text-muted-foreground">{withdrawal.user.email}</p>
+            </div>
+            <WithdrawalStatusBadge
+              status={withdrawal.status}
+              label={withdrawal.statusName}
+              className="shrink-0"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {getWithdrawalStatusDescription(withdrawal.status)}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Requested {formatDateTime(withdrawal.requestedAt)}
+          </p>
+          <WithdrawalRowActions {...props} withdrawal={withdrawal} align="start" />
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function WithdrawalStatusCell({ withdrawal }: { withdrawal: AdminWithdrawalListItem }) {
+  return (
+    <div className="space-y-1">
+      <WithdrawalStatusBadge status={withdrawal.status} label={withdrawal.statusName} />
+      <p className="text-xs text-muted-foreground">
+        {getWithdrawalStatusDescription(withdrawal.status)}
+      </p>
+    </div>
+  );
+}
+
+function WithdrawalRowActions({
+  withdrawal,
+  pendingActionId,
+  isActionPending,
+  onViewDetail,
+  onApprove,
+  onRequestReject,
+  onRequestComplete,
+  align = "end",
+}: {
+  withdrawal: AdminWithdrawalListItem;
+  pendingActionId: string | null;
+  isActionPending: boolean;
+  onViewDetail: (id: string) => void;
+  onApprove: (id: string) => void;
+  onRequestReject: (id: string) => void;
+  onRequestComplete: (id: string) => void;
+  align?: "end" | "start";
+}) {
+  const isRowPending = isActionPending && pendingActionId === withdrawal.id;
+  const menuActions = [
+    { label: "View details", onClick: () => onViewDetail(withdrawal.id) },
+    ...(withdrawal.status === WithdrawalStatus.Pending
+      ? [{ label: "Reject", onClick: () => onRequestReject(withdrawal.id), destructive: true }]
+      : []),
+  ];
+
+  return (
+    <div className={`flex flex-wrap gap-2 ${align === "end" ? "justify-end" : "justify-start"}`}>
+      {withdrawal.status === WithdrawalStatus.Pending ? (
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          disabled={isRowPending}
+          onClick={() => void onApprove(withdrawal.id)}
+        >
+          <CheckCircle2 className="size-4" />
+          Approve
+        </Button>
+      ) : null}
+
+      {withdrawal.status === WithdrawalStatus.Approved ? (
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          disabled={isRowPending}
+          onClick={() => onRequestComplete(withdrawal.id)}
+        >
+          <CheckCircle2 className="size-4" />
+          Complete
+        </Button>
+      ) : null}
+
+      <RowActionsMenu actions={menuActions} disabled={isRowPending} />
+    </div>
+  );
+}
+
+function AdminWithdrawalsTableSkeleton() {
+  return (
+    <>
+      <div className="hidden overflow-hidden rounded-xl border border-border md:block">
+        <div className="border-b border-border bg-muted/40 px-4 py-3">
+          <Skeleton className="h-3 w-full max-w-lg" />
+        </div>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="flex gap-4 border-b border-border px-4 py-3 last:border-b-0">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="ml-auto h-8 w-24" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-3 md:hidden">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Skeleton key={index} className="h-40 w-full rounded-xl" />
+        ))}
+      </div>
     </>
   );
 }
