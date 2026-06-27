@@ -1,9 +1,10 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, Wallet } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 
+import { MetricCard, MetricCardSkeleton } from "@/components/metric-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,13 +14,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   dashboardSummaryQueryKey,
   useDashboardSummary,
 } from "@/features/dashboard/hooks/use-dashboard-summary";
+import { formatCurrency } from "@/features/orders/lib/order-formatters";
 import { useCreateWithdrawal } from "@/features/withdrawals/hooks/use-create-withdrawal";
 import { withdrawalsQueryKey } from "@/features/withdrawals/hooks/use-withdrawals";
-import { formatCurrency } from "@/features/orders/lib/order-formatters";
 import { isApiError } from "@/services/api-client";
 import { emptyDashboardSummary } from "@/types/dashboard";
 import { MIN_WITHDRAWAL_AMOUNT } from "@/types/withdrawal";
@@ -47,12 +49,20 @@ export function WithdrawalForm() {
   const { data: dashboardSummary, isLoading: isBalanceLoading } = useDashboardSummary();
   const createWithdrawal = useCreateWithdrawal();
 
-  const availableBalance = dashboardSummary?.availableBalance ?? emptyDashboardSummary.availableBalance;
+  const availableBalance =
+    dashboardSummary?.availableBalance ?? emptyDashboardSummary.availableBalance;
+  const canWithdraw = availableBalance >= MIN_WITHDRAWAL_AMOUNT;
 
   const updateField = (field: keyof WithdrawalFormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
     setClientError(null);
     setSuccessMessage(null);
+  };
+
+  const handleUseMaxAmount = () => {
+    if (availableBalance >= MIN_WITHDRAWAL_AMOUNT) {
+      updateField("amount", String(availableBalance));
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -98,7 +108,7 @@ export function WithdrawalForm() {
       });
 
       setForm(initialFormState);
-      setSuccessMessage("Withdrawal request submitted successfully.");
+      setSuccessMessage("Withdrawal request submitted. Your balance has been reserved.");
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: withdrawalsQueryKey }),
@@ -110,145 +120,208 @@ export function WithdrawalForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Request withdrawal</CardTitle>
-        <CardDescription>
-          Transfer your available cashback balance to your bank account.
-        </CardDescription>
-      </CardHeader>
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div className="space-y-4 lg:col-span-1">
+        {isBalanceLoading ? (
+          <MetricCardSkeleton featured />
+        ) : (
+          <MetricCard
+            label="Available balance"
+            value={formatCurrency(availableBalance)}
+            description="Ready to withdraw"
+            featured
+          />
+        )}
 
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Wallet className="size-5" />
+        <Card>
+          <CardContent className="space-y-4 pt-6">
+            <div className="flex gap-3">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Secure transfer</p>
+                <p className="text-xs text-muted-foreground">
+                  Withdrawals are reviewed by our team before bank transfer.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Available balance</p>
-              {isBalanceLoading ? (
-                <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" />
-                  Loading...
-                </div>
-              ) : (
-                <p className="text-xl font-semibold">{formatCurrency(availableBalance)}</p>
-              )}
+            <div className="flex gap-3">
+              <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Processing time</p>
+                <p className="text-xs text-muted-foreground">
+                  Transfers typically complete within 1–3 business days after approval.
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <label htmlFor="withdrawal-amount" className="text-sm font-medium">
-              Amount (VND)
-            </label>
-            <Input
-              id="withdrawal-amount"
-              name="amount"
-              type="number"
-              min={MIN_WITHDRAWAL_AMOUNT}
-              step={1000}
-              inputMode="numeric"
-              placeholder={`Minimum ${MIN_WITHDRAWAL_AMOUNT.toLocaleString("vi-VN")}`}
-              value={form.amount}
-              onChange={(event) => updateField("amount", event.target.value)}
-              disabled={createWithdrawal.isPending || isBalanceLoading}
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Minimum withdrawal: {formatCurrency(MIN_WITHDRAWAL_AMOUNT)}
-            </p>
-          </div>
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle>Request withdrawal</CardTitle>
+          <CardDescription>
+            Transfer your available cashback balance to your bank account.
+          </CardDescription>
+        </CardHeader>
 
-          <div className="space-y-2">
-            <label htmlFor="bank-name" className="text-sm font-medium">
-              Bank name
-            </label>
-            <Input
-              id="bank-name"
-              name="bankName"
-              autoComplete="organization"
-              placeholder="Vietcombank"
-              value={form.bankName}
-              onChange={(event) => updateField("bankName", event.target.value)}
-              disabled={createWithdrawal.isPending}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="account-number" className="text-sm font-medium">
-              Account number
-            </label>
-            <Input
-              id="account-number"
-              name="bankAccountNumber"
-              autoComplete="off"
-              inputMode="numeric"
-              placeholder="0123456789"
-              value={form.bankAccountNumber}
-              onChange={(event) => updateField("bankAccountNumber", event.target.value)}
-              disabled={createWithdrawal.isPending}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="account-holder" className="text-sm font-medium">
-              Account holder
-            </label>
-            <Input
-              id="account-holder"
-              name="bankAccountHolder"
-              autoComplete="name"
-              placeholder="Nguyen Van A"
-              value={form.bankAccountHolder}
-              onChange={(event) => updateField("bankAccountHolder", event.target.value)}
-              disabled={createWithdrawal.isPending}
-              required
-            />
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={createWithdrawal.isPending || isBalanceLoading}
-          >
-            {createWithdrawal.isPending ? (
-              <>
-                <Loader2 className="animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              "Submit withdrawal request"
-            )}
-          </Button>
-
-          {clientError ? (
-            <p className="text-sm text-destructive" role="alert">
-              {clientError}
-            </p>
-          ) : null}
-
-          {createWithdrawal.isError ? (
-            <p className="text-sm text-destructive" role="alert">
-              {getErrorMessage(createWithdrawal.error)}
-            </p>
-          ) : null}
-
-          {successMessage ? (
+        <CardContent className="space-y-6">
+          {!isBalanceLoading && !canWithdraw ? (
             <p
-              className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400"
+              className="rounded-lg bg-warning-muted px-3 py-2 text-xs text-warning"
               role="status"
             >
-              <CheckCircle2 className="size-4" />
-              {successMessage}
+              Minimum withdrawal is {formatCurrency(MIN_WITHDRAWAL_AMOUNT)}. Earn more
+              cashback to request a payout.
             </p>
           ) : null}
-        </form>
-      </CardContent>
-    </Card>
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <p className="text-sm font-medium">Withdrawal amount</p>
+
+              <div className="space-y-1.5">
+                <label htmlFor="withdrawal-amount" className="text-xs font-medium text-muted-foreground">
+                  Amount (VND)
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    id="withdrawal-amount"
+                    name="amount"
+                    type="number"
+                    min={MIN_WITHDRAWAL_AMOUNT}
+                    step={1000}
+                    inputMode="numeric"
+                    placeholder={`Minimum ${MIN_WITHDRAWAL_AMOUNT.toLocaleString("vi-VN")}`}
+                    value={form.amount}
+                    onChange={(event) => updateField("amount", event.target.value)}
+                    disabled={createWithdrawal.isPending || isBalanceLoading || !canWithdraw}
+                    required
+                    className="tabular-nums"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="default"
+                    className="shrink-0"
+                    disabled={
+                      createWithdrawal.isPending || isBalanceLoading || !canWithdraw
+                    }
+                    onClick={handleUseMaxAmount}
+                  >
+                    Withdraw max
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Minimum: {formatCurrency(MIN_WITHDRAWAL_AMOUNT)} · Balance is reserved
+                  immediately upon submission
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm font-medium">Bank details</p>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label htmlFor="bank-name" className="text-xs font-medium text-muted-foreground">
+                    Bank name
+                  </label>
+                  <Input
+                    id="bank-name"
+                    name="bankName"
+                    autoComplete="organization"
+                    placeholder="Vietcombank"
+                    value={form.bankName}
+                    onChange={(event) => updateField("bankName", event.target.value)}
+                    disabled={createWithdrawal.isPending || !canWithdraw}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="account-number" className="text-xs font-medium text-muted-foreground">
+                    Account number
+                  </label>
+                  <Input
+                    id="account-number"
+                    name="bankAccountNumber"
+                    autoComplete="off"
+                    inputMode="numeric"
+                    placeholder="0123456789"
+                    value={form.bankAccountNumber}
+                    onChange={(event) =>
+                      updateField("bankAccountNumber", event.target.value)
+                    }
+                    disabled={createWithdrawal.isPending || !canWithdraw}
+                    required
+                    className="font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="account-holder" className="text-xs font-medium text-muted-foreground">
+                    Account holder
+                  </label>
+                  <Input
+                    id="account-holder"
+                    name="bankAccountHolder"
+                    autoComplete="name"
+                    placeholder="Nguyen Van A"
+                    value={form.bankAccountHolder}
+                    onChange={(event) =>
+                      updateField("bankAccountHolder", event.target.value)
+                    }
+                    disabled={createWithdrawal.isPending || !canWithdraw}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Must match your bank account name exactly
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full sm:w-auto"
+              disabled={createWithdrawal.isPending || isBalanceLoading || !canWithdraw}
+            >
+              {createWithdrawal.isPending ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit withdrawal request"
+              )}
+            </Button>
+
+            {clientError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {clientError}
+              </p>
+            ) : null}
+
+            {createWithdrawal.isError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {getErrorMessage(createWithdrawal.error)}
+              </p>
+            ) : null}
+
+            {successMessage ? (
+              <p
+                className="flex items-center gap-2 rounded-lg bg-success-muted px-3 py-2 text-sm text-success"
+                role="status"
+              >
+                <CheckCircle2 className="size-4 shrink-0" />
+                {successMessage}
+              </p>
+            ) : null}
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -270,4 +343,23 @@ function getErrorMessage(error: unknown): string {
   }
 
   return "Unable to submit withdrawal request. Please try again.";
+}
+
+export function WithdrawalFormSkeleton() {
+  return (
+    <div className="grid gap-6 lg:grid-cols-3">
+      <MetricCardSkeleton featured />
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-64" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
