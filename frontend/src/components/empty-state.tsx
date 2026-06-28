@@ -1,10 +1,10 @@
-import type { LucideIcon } from "lucide-react";
+import { Inbox, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon?: LucideIcon;
   title: string;
   description: string;
   action?: ReactNode;
@@ -18,6 +18,8 @@ export function EmptyState({
   action,
   className,
 }: EmptyStateProps) {
+  const ResolvedIcon = Icon ?? Inbox;
+
   return (
     <div
       className={cn(
@@ -25,7 +27,7 @@ export function EmptyState({
         className,
       )}
     >
-      <Icon className="size-12 text-muted-foreground" aria-hidden="true" />
+      <ResolvedIcon className="size-12 text-muted-foreground" aria-hidden="true" />
       <div className="space-y-1">
         <p className="text-base font-medium">{title}</p>
         <p className="max-w-sm text-xs text-muted-foreground">{description}</p>

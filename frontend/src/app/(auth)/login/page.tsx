@@ -44,18 +44,18 @@ export default function LoginPage() {
     <PublicRoute>
       <div className="space-y-4">
         <p className="text-center text-sm text-muted-foreground">
-          Sign in with your Google account to access cashback features.
+          Đăng nhập bằng tài khoản Google để truy cập các tính năng hoàn tiền.
         </p>
 
         <GoogleLoginButton
           onSuccess={handleGoogleSuccess}
-          onError={() => setErrorMessage("Google sign-in was cancelled or failed.")}
+          onError={() => setErrorMessage("Đăng nhập Google bị hủy hoặc thất bại.")}
           disabled={isSubmitting}
         />
 
         {isSubmitting ? (
           <p className="text-center text-sm text-muted-foreground">
-            Signing in...
+            Đang đăng nhập...
           </p>
         ) : null}
 

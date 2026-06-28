@@ -7,28 +7,28 @@ export interface AdminNavItem {
 
 export const adminNavigationItems: AdminNavItem[] = [
   {
-    label: "Dashboard",
+    label: "Bảng điều khiển",
     href: "/admin",
-    title: "Admin dashboard",
-    description: "Platform overview with user, order, withdrawal, and revenue statistics.",
+    title: "Bảng điều khiển quản trị",
+    description: "Tổng quan nền tảng với thống kê người dùng, đơn hàng, rút tiền và doanh thu.",
   },
   {
-    label: "Users",
+    label: "Người dùng",
     href: "/admin/users",
-    title: "User management",
-    description: "Search users, review account details, and manage active or suspended status.",
+    title: "Quản lý người dùng",
+    description: "Tìm kiếm người dùng, xem chi tiết tài khoản và quản lý trạng thái hoạt động hoặc tạm khóa.",
   },
   {
-    label: "Orders",
+    label: "Đơn hàng",
     href: "/admin/orders",
-    title: "Order management",
-    description: "Search and filter platform orders, then review conversion details for each user.",
+    title: "Quản lý đơn hàng",
+    description: "Tìm kiếm và lọc đơn hàng trên nền tảng rồi xem chi tiết chuyển đổi cho từng người dùng.",
   },
   {
-    label: "Withdrawals",
+    label: "Yêu cầu rút tiền",
     href: "/admin/withdrawals",
-    title: "Withdrawal management",
-    description: "Review withdrawal requests, filter by status, and approve or reject payouts.",
+    title: "Quản lý rút tiền",
+    description: "Xem các yêu cầu rút tiền, lọc theo trạng thái và phê duyệt hoặc từ chối thanh toán.",
   },
 ];
 

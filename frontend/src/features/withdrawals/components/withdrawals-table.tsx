@@ -68,9 +68,9 @@ export function WithdrawalsTable() {
     <Card>
       <CardHeader className="gap-4">
         <div>
-          <CardTitle>Withdrawal history</CardTitle>
+          <CardTitle>Payout history</CardTitle>
           <CardDescription>
-            Track the status of your withdrawal requests and bank transfers.
+            Your withdrawal requests and bank transfer status — auditable records.
           </CardDescription>
         </div>
 
@@ -95,8 +95,8 @@ export function WithdrawalsTable() {
         {isEmpty && !hasActiveFilters ? (
           <EmptyState
             icon={Banknote}
-            title="No withdrawals yet"
-            description="Submit a withdrawal request above to see your transaction history here."
+            title="No payouts yet"
+            description="Submit a withdrawal request to see payout records here."
           />
         ) : null}
 
@@ -119,7 +119,7 @@ export function WithdrawalsTable() {
         ) : null}
 
         {!isLoading && !isError && data && data.items.length > 0 ? (
-          <div className="relative">
+            <div className="relative">
             {isFetching ? (
               <div
                 className="absolute inset-x-0 top-0 z-10 h-0.5 overflow-hidden rounded-full bg-muted"
@@ -174,7 +174,7 @@ function WithdrawalsDesktopTable({ withdrawals }: WithdrawalsListProps) {
             <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">
               Reference
             </th>
-            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">
+            <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground text-right">
               Amount
             </th>
             <th scope="col" className="px-4 py-3 text-xs font-medium text-muted-foreground">

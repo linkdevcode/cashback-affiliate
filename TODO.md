@@ -375,13 +375,63 @@ Status Legend
 
 ---
 
-EPIC 8.5 - Design System & UI Revamp
+# EPIC 8.5 - UI Revamp
 
-1. DESIGN.md
-2. Dashboard redesign
-3. Orders redesign
-4. Withdrawals redesign
-5. Admin redesign
+## Feature 8.5.1 - Design System
+
+- [x] Design Tokens
+- [x] AppShell
+- [x] PageHeader
+- [x] StatCard
+- [x] StatusBadge
+- [x] DataTable
+- [x] EmptyState
+- [x] LoadingSkeleton
+
+---
+
+## Feature 8.5.2 - Workspace Page
+
+- [x] Create Workspace Page
+- [x] Link Converter Section
+- [x] Wallet Summary Section
+- [x] Recent Orders Section
+- [x] Earnings Snapshot Section
+
+---
+
+## Feature 8.5.3 - Navigation Refactor
+
+- [x] Workspace Default Route
+- [x] Update Sidebar
+- [x] Update Mobile Navigation
+
+---
+
+## Feature 8.5.4 - Campaigns Page
+
+- [x] Cashback Rates Page
+- [x] Merchant Cards
+- [x] Search Campaigns
+
+---
+
+---
+
+## Feature 8.5.5 - Withdrawals Redesign
+
+- [x] New Withdrawal Form
+- [x] Withdrawal History
+- [x] Status Timeline
+
+---
+
+## Feature 8.5.6 - Admin UI Redesign
+
+- [x] Admin Dashboard
+- [x] Users Management
+- [x] Orders Management
+- [x] Withdrawals Management
 
 ---
 

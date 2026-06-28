@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter, Outfit } from "next/font/google";
 
 import { GoogleAuthProvider } from "@/providers/google-auth-provider";
 import { QueryProvider } from "@/providers/query-provider";
 
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -17,8 +24,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cashback Affiliate Platform",
-  description: "Affiliate cashback platform MVP",
+  title: "SmartCashback | Nền tảng hoàn tiền thông minh",
+  description: "Nền tảng hoàn tiền và liên kết tiếp thị cho người tiêu dùng Việt Nam",
 };
 
 export default function RootLayout({
@@ -27,9 +34,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${outfit.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
           <GoogleAuthProvider>{children}</GoogleAuthProvider>

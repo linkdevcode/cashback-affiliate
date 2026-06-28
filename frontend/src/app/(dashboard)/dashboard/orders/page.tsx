@@ -5,7 +5,7 @@ export default function OrdersPage() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        View your order history, track cashback earnings, and monitor conversion status.
+        Xem lịch sử đơn hàng, theo dõi khoản hoàn tiền và giám sát trạng thái chuyển đổi.
       </p>
 
       <EarningsSummaryCards />

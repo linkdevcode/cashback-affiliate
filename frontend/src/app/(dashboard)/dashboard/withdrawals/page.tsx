@@ -5,7 +5,7 @@ export default function WithdrawalsPage() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        Request a withdrawal from your available balance and track processing status.
+        Yêu cầu rút tiền từ số dư khả dụng và theo dõi trạng thái xử lý.
       </p>
 
       <WithdrawalForm />

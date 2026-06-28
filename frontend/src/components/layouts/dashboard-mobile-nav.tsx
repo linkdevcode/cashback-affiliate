@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Link2, Package, Wallet } from "lucide-react";
+import { LayoutDashboard, Link2, Package, Wallet, Tag } from "lucide-react";
 
 import { dashboardNavigationItems } from "@/config/dashboard-navigation";
 import { cn } from "@/lib/utils";
 
 const mobileNavIcons = {
-  "/dashboard": LayoutDashboard,
+  "/dashboard/workspace": LayoutDashboard,
   "/dashboard/affiliate": Link2,
+  "/dashboard/campaigns": Tag,
   "/dashboard/orders": Package,
   "/dashboard/withdrawals": Wallet,
 } as const;

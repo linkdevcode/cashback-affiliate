@@ -10,9 +10,9 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-border bg-sidebar md:block">
+    <aside className="hidden w-72 shrink-0 border-r border-border bg-white dark:bg-darkBg-900 md:block">
       <div className="flex h-16 items-center border-b border-border px-6">
-        <span className="text-base font-semibold">Admin</span>
+        <span className="text-base font-semibold">Quản trị</span>
       </div>
 
       <nav className="space-y-1 p-4">
