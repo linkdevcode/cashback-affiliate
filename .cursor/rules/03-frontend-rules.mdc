@@ -1,0 +1,398 @@
+---
+
+description: Frontend Development Rules
+globs:
+- frontend/**/*.ts
+- frontend/**/*.tsx
+alwaysApply: true
+
+---
+
+# Frontend Rules
+
+References:
+
+- docs/coding-standards.md
+- docs/folder-structure.md
+- docs/api-specification.md
+- docs/user-flows.md
+
+---
+
+# Technology Stack
+
+Framework
+
+- React
+- TypeScript
+- Vite
+
+UI
+
+- Shadcn/UI
+- TailwindCSS
+
+State Management
+
+- TanStack Query
+
+Forms
+
+- React Hook Form
+- Zod
+
+Routing
+
+- React Router
+
+---
+
+# General Principles
+
+Frontend responsibilities:
+
+- UI Rendering
+- User Interaction
+- Form Handling
+- API Consumption
+
+Frontend must NOT contain:
+
+- Business Logic
+- Cashback Calculation Logic
+- Permission Logic
+- Database Logic
+
+Business rules belong to Backend.
+
+---
+
+# TypeScript Rules
+
+TypeScript is mandatory.
+
+Never use:
+
+```ts
+any
+```
+
+Prefer:
+
+```ts
+type OrderStatus =
+  | "pending"
+  | "approved"
+  | "rejected";
+```
+
+or
+
+```ts
+interface OrderDto {
+  id: string;
+}
+```
+
+---
+
+# Folder Structure
+
+Must follow:
+
+docs/folder-structure.md
+
+Example:
+
+features/
+
+├── auth/
+├── dashboard/
+├── affiliate-links/
+├── orders/
+├── withdrawals/
+└── admin/
+
+---
+
+# Component Rules
+
+Components must be small.
+
+Preferred:
+
+- One responsibility
+- Reusable
+- Predictable
+
+Good:
+
+AffiliateLinkForm
+
+OrderTable
+
+BalanceCard
+
+WithdrawForm
+
+Bad:
+
+DashboardPageWithEverythingInside
+
+---
+
+# Component Organization
+
+Feature-specific:
+
+```text
+features/orders/components/
+```
+
+Shared:
+
+```text
+components/
+```
+
+Do not place everything in components/.
+
+---
+
+# Page Rules
+
+Pages compose components.
+
+Pages must not contain:
+
+- API calls
+- Large business logic
+- Data transformation chains
+
+Move logic to hooks.
+
+---
+
+# Hook Rules
+
+Custom hooks start with:
+
+```ts
+use
+```
+
+Examples:
+
+```ts
+useOrders()
+useDashboard()
+useWithdrawals()
+```
+
+---
+
+Hooks may contain:
+
+- API calls
+- Query logic
+- Mutation logic
+
+Hooks must NOT contain:
+
+- JSX
+- UI rendering
+
+---
+
+# API Rules
+
+All API communication goes through:
+
+```text
+services/
+```
+
+Examples:
+
+```ts
+auth-service.ts
+order-service.ts
+dashboard-service.ts
+```
+
+Never call fetch directly inside components.
+
+Bad:
+
+```tsx
+useEffect(() => {
+  fetch(...)
+})
+```
+
+---
+
+# React Query Rules
+
+Use TanStack Query.
+
+Queries:
+
+```ts
+useQuery(...)
+```
+
+Mutations:
+
+```ts
+useMutation(...)
+```
+
+Avoid manual loading state management when Query already provides it.
+
+---
+
+# Form Rules
+
+Use:
+
+- React Hook Form
+- Zod
+
+Every form requires validation schema.
+
+Example:
+
+```ts
+withdrawSchema
+generateLinkSchema
+```
+
+---
+
+# UI Rules
+
+Prefer Shadcn components.
+
+Avoid building custom UI when equivalent component exists.
+
+---
+
+# Styling Rules
+
+Use TailwindCSS only.
+
+Avoid:
+
+```tsx
+style={{}}
+```
+
+Avoid CSS files unless absolutely necessary.
+
+---
+
+# State Rules
+
+Server State
+
+Use React Query.
+
+UI State
+
+Use useState.
+
+Avoid Redux during MVP.
+
+---
+
+# DTO Rules
+
+Frontend must consume DTOs from backend.
+
+Never create incompatible models.
+
+Types must match API contracts.
+
+---
+
+# Authentication Rules
+
+JWT stored securely.
+
+Protected pages must require authentication.
+
+Admin pages require admin role.
+
+---
+
+# Error Handling
+
+Display friendly messages.
+
+Do not expose:
+
+- Stack traces
+- Backend exceptions
+- Internal details
+
+---
+
+# Loading States
+
+Every async screen must support:
+
+- Loading
+- Empty
+- Error
+- Success
+
+---
+
+# Performance Rules
+
+Use:
+
+```tsx
+React.memo
+useMemo
+useCallback
+```
+
+only when necessary.
+
+Avoid premature optimization.
+
+---
+
+# Accessibility Rules
+
+Forms require:
+
+- Labels
+- Validation messages
+- Keyboard accessibility
+
+---
+
+# Code Generation Checklist
+
+✓ TypeScript only
+
+✓ No any
+
+✓ React Query
+
+✓ RHF + Zod
+
+✓ Shadcn
+
+✓ Tailwind
+
+✓ Feature-based structure
+
+✓ Small components
+
+✓ API in services
+
+✓ No business logic in UI
